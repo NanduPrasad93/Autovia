@@ -1,0 +1,100 @@
+{% extends 'accounts/dashboards/dashboard_base.html' %}
+
+{% block sidebar_title %}Mechanic Console{% endblock %}
+
+{% block sidebar_links %}
+<li class="nav-item">
+    <a class="nav-link active rounded-3 px-3 py-2 text-dark fw-semibold bg-light" href="#">
+        <i class="fa-solid fa-gauge-high text-warning me-2"></i> Overview
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-wrench text-primary me-2"></i> Assigned Requests
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-calculator text-success me-2"></i> Repair Estimates
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-user-gear text-info me-2"></i> Profile & Skills
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-toggle-on text-warning me-2"></i> Availability Toggle
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Verification & Availability Status Banner -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h5 class="fw-bold mb-1">Professional Verification Status</h5>
+            <p class="text-muted small mb-0">Your profile requires administrative clearance before receiving public job dispatches.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if request.user.mechanic_profile.verification_status == 'VERIFIED' %}bg-success{% elif request.user.mechanic_profile.verification_status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 py-2 fs-6">
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> {{ request.user.mechanic_profile.get_verification_status_display|default:"PENDING VERIFICATION" }}
+            </span>
+            <span class="badge {% if request.user.mechanic_profile.is_available %}bg-info text-dark{% else %}bg-secondary{% endif %} px-3 py-2 fs-6">
+                <i class="fa-solid fa-circle-dot me-1"></i> Available for Jobs
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">New Job Requests</span>
+                <div class="p-2 bg-warning bg-opacity-25 text-warning rounded-3">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">0</h3>
+            <small class="text-muted">Awaiting your response</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Repairs In Progress</span>
+                <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">0</h3>
+            <small class="text-muted">Active repair jobs</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Specialization Area</span>
+                <div class="p-2 bg-success bg-opacity-10 text-success rounded-3">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+            </div>
+            <h6 class="fw-bold mb-0 text-truncate">{{ request.user.mechanic_profile.specialization|default:"General Maintenance" }}</h6>
+            <small class="text-muted">Registered specialty</small>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center py-5">
+    <div class="brand-icon mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem;">
+        <i class="fa-solid fa-wrench"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">Mechanic Workstation</h4>
+    <p class="text-muted small max-w-600 mx-auto mb-0">
+        You are authenticated with the <strong>Mechanic</strong> role. Once your credentials and certifications are verified by an administrator, incoming customer vehicle repair requests in your service location will be dispatched here.
+    </p>
+</div>
+{% endblock %}

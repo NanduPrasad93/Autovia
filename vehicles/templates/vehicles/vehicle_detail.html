@@ -1,0 +1,228 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}{{ vehicle.manufacturer }} {{ vehicle.model_name }} ({{ vehicle.registration_number }}) | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'vehicles:list' %}" class="text-decoration-none">My Vehicles</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ vehicle.registration_number }}</li>
+    </ol>
+</nav>
+
+<!-- Vehicle Header Card -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                <i class="fa-solid fa-car-side"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <h3 class="fw-bold mb-0 text-dark">{{ vehicle.manufacturer }} {{ vehicle.model_name }}</h3>
+                    <span class="badge font-monospace bg-dark text-white px-2 py-1">{{ vehicle.registration_number }}</span>
+                </div>
+                <div class="text-muted small mt-1">
+                    <span>{{ vehicle.manufacturing_year }} Model</span>
+                    <span class="mx-2">&bull;</span>
+                    <span>{{ vehicle.color }}</span>
+                    <span class="mx-2">&bull;</span>
+                    <span class="badge bg-light text-dark border">{{ vehicle.get_fuel_type_display }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+            <a href="{% url 'services:request_create' %}?vehicle_id={{ vehicle.pk }}" class="btn btn-primary-autovia btn-sm">
+                <i class="fa-solid fa-wrench me-1"></i> Request Service
+            </a>
+            <a href="{% url 'expenses:add' %}?vehicle_id={{ vehicle.pk }}" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-receipt me-1"></i> Add Expense
+            </a>
+            <a href="{% url 'vehicles:edit' vehicle.pk %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Metrics Row -->
+    <div class="row g-3 mt-3 pt-3 border-top">
+        <div class="col-md-3 col-6">
+            <small class="text-muted d-block">Current Odometer</small>
+            <span class="fw-bold text-dark fs-5">{{ vehicle.current_odometer }} km</span>
+        </div>
+        <div class="col-md-3 col-6">
+            <small class="text-muted d-block">Chassis / VIN</small>
+            <span class="fw-semibold text-dark font-monospace">{{ vehicle.chassis_number|default:"N/A" }}</span>
+        </div>
+        <div class="col-md-3 col-6">
+            <small class="text-muted d-block">Logged Expenses</small>
+            <span class="fw-bold text-success fs-5">${{ total_expenses|floatformat:2 }}</span>
+        </div>
+        <div class="col-md-3 col-6">
+            <small class="text-muted d-block">Service Records</small>
+            <span class="fw-bold text-dark fs-5">{{ service_records.count }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for Requests, History, and Expenses -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="card-header bg-white border-bottom pt-3 pb-0 px-4">
+        <ul class="nav nav-tabs border-0" id="vehicleDetailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-semibold text-dark pb-3 border-0 border-bottom border-warning border-3" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests-pane" type="button" role="tab" aria-controls="requests-pane" aria-selected="true">
+                    <i class="fa-solid fa-screwdriver-wrench me-1 text-primary"></i> Service Requests ({{ service_requests.count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold text-muted pb-3 border-0" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button" role="tab" aria-controls="history-pane" aria-selected="false">
+                    <i class="fa-solid fa-clipboard-check me-1 text-success"></i> Service History ({{ service_records.count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold text-muted pb-3 border-0" id="expenses-tab" data-bs-toggle="tab" data-bs-target="#expenses-pane" type="button" role="tab" aria-controls="expenses-pane" aria-selected="false">
+                    <i class="fa-solid fa-wallet me-1 text-warning"></i> Expenses ({{ expenses.count }})
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card-body p-4">
+        <div class="tab-content" id="vehicleDetailTabsContent">
+
+            <!-- 1. Service Requests Tab -->
+            <div class="tab-pane fade show active" id="requests-pane" role="tabpanel" aria-labelledby="requests-tab">
+                {% if service_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Problem Description</th>
+                                    <th>Assigned Provider</th>
+                                    <th>Requested Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in service_requests %}
+                                    <tr>
+                                        <td>#{{ req.id }}</td>
+                                        <td><div class="text-truncate" style="max-width: 250px;">{{ req.problem_description }}</div></td>
+                                        <td>
+                                            {% if req.mechanic %}
+                                                <span class="badge bg-light text-dark border"><i class="fa-solid fa-user-gear me-1"></i> {{ req.mechanic.user.get_full_name|default:req.mechanic.user.username }}</span>
+                                            {% elif req.workshop %}
+                                                <span class="badge bg-light text-dark border"><i class="fa-solid fa-building me-1"></i> {{ req.workshop.workshop_name }}</span>
+                                            {% else %}
+                                                <span class="text-muted small">Pending Assignment</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small">{{ req.requested_date|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <span class="badge {% if req.status == 'COMPLETED' %}bg-success{% elif req.status == 'PENDING' %}bg-warning text-dark{% elif req.status == 'CANCELLED' or req.status == 'REJECTED' %}bg-danger{% else %}bg-primary{% endif %}">
+                                                {{ req.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'services:request_detail' req.pk %}" class="btn btn-outline-primary btn-sm">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-clock-rotate-left fs-3 mb-2 d-block text-secondary"></i>
+                        No service requests initiated for this vehicle yet.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 2. Service History Tab -->
+            <div class="tab-pane fade" id="history-pane" role="tabpanel" aria-labelledby="history-tab">
+                {% if service_records %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Service Description</th>
+                                    <th>Odometer</th>
+                                    <th>Total Cost</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in service_records %}
+                                    <tr>
+                                        <td class="small fw-semibold">{{ rec.service_date|date:"M d, Y" }}</td>
+                                        <td>{{ rec.service_description }}</td>
+                                        <td>{{ rec.odometer_reading }} km</td>
+                                        <td class="fw-bold text-dark">${{ rec.total_cost }}</td>
+                                        <td>
+                                            <a href="{% url 'services:record_detail' rec.pk %}" class="btn btn-outline-secondary btn-sm">
+                                                View Log
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-file-lines fs-3 mb-2 d-block text-secondary"></i>
+                        No recorded service history available for this vehicle.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 3. Expenses Tab -->
+            <div class="tab-pane fade" id="expenses-pane" role="tabpanel" aria-labelledby="expenses-tab">
+                {% if expenses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exp in expenses %}
+                                    <tr>
+                                        <td class="small">{{ exp.expense_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ exp.get_category_display }}</span>
+                                        </td>
+                                        <td>{{ exp.description|default:"-" }}</td>
+                                        <td class="fw-bold text-danger">${{ exp.amount }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-receipt fs-3 mb-2 d-block text-secondary"></i>
+                        No expenses logged for this vehicle yet.
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}Find Verified Mechanics | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Find Verified Mechanics</h3>
+        <p class="text-muted small mb-0">Browse accredited mobile technicians and automotive specialists near your area</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        {% if not show_all %}
+            <a href="?show_all=true" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-filter me-1"></i> Include Pending (Dev Mode)
+            </a>
+        {% else %}
+            <a href="?show_all=false" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-certificate me-1"></i> Show Verified Only
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <form method="GET" class="row g-3">
+        {% if show_all %}
+            <input type="hidden" name="show_all" value="true">
+        {% endif %}
+        <div class="col-md-7">
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by mechanic name, location, or skill (e.g. Brakes, Transmission)...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="specialization" value="{{ specialization }}" class="form-control" placeholder="Filter by specialization...">
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary-autovia w-100">
+                Search
+            </button>
+            {% if query or specialization %}
+                <a href="{% url 'mechanics:find_mechanics' %}" class="btn btn-light" title="Clear Filters">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Mechanics Grid -->
+{% if mechanics %}
+    <div class="row g-4">
+        {% for mechanic in mechanics %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white d-flex flex-column">
+                    <div style="height: 5px; background: {% if mechanic.verification_status == 'VERIFIED' %}#16A34A{% else %}#EAB308{% endif %};"></div>
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge {% if mechanic.verification_status == 'VERIFIED' %}bg-success{% elif mechanic.verification_status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                <i class="fa-solid fa-shield-check me-1"></i> {{ mechanic.get_verification_status_display }}
+                            </span>
+                            <span class="badge {% if mechanic.is_available %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                <i class="fa-solid fa-circle-dot me-1"></i> {% if mechanic.is_available %}Available{% else %}Busy / Offline{% endif %}
+                            </span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="stat-icon bg-warning bg-opacity-25 text-warning" style="width: 50px; height: 50px; font-size: 1.4rem;">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark">
+                                    {{ mechanic.user.get_full_name|default:mechanic.user.username }}
+                                </h5>
+                                <small class="text-muted"><i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ mechanic.service_location }}</small>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-3 mb-3 small">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Specialization:</span>
+                                <span class="fw-semibold text-dark">{{ mechanic.specialization }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Experience:</span>
+                                <span class="fw-bold text-dark">{{ mechanic.experience_years }} Year{{ mechanic.experience_years|pluralize }}</span>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ mechanic.description|default:"Certified automotive specialist providing expert diagnostics and on-call repairs." }}
+                        </p>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 mt-auto">
+                            <a href="{% url 'mechanics:mechanic_detail' mechanic.pk %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                                <i class="fa-solid fa-id-card me-1"></i> Profile
+                            </a>
+                            <a href="{% url 'services:request_create' %}?mechanic_id={{ mechanic.pk }}" class="btn btn-primary-autovia btn-sm">
+                                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Request
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-4">
+        <div class="brand-icon mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem;">
+            <i class="fa-solid fa-user-slash"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No Approved Mechanics Available</h4>
+        <p class="text-muted small max-w-600 mx-auto mb-3">
+            Currently, there are no certified mechanics matching your filter or in verified status.
+        </p>
+        <div>
+            <a href="?show_all=true" class="btn btn-outline-secondary btn-sm px-4">
+                <i class="fa-solid fa-eye me-1"></i> View Pending Mechanics (Development Mode)
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

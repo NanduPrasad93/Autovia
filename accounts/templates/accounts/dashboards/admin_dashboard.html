@@ -1,0 +1,89 @@
+{% extends 'accounts/dashboards/dashboard_base.html' %}
+
+{% block sidebar_title %}Administrative Menu{% endblock %}
+
+{% block sidebar_links %}
+<li class="nav-item">
+    <a class="nav-link active rounded-3 px-3 py-2 text-dark fw-semibold bg-light" href="#">
+        <i class="fa-solid fa-gauge-high text-warning me-2"></i> Overview
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="{% url 'admin:index' %}" target="_blank">
+        <i class="fa-solid fa-shield-halved text-danger me-2"></i> Django Admin Portal
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="{% url 'admin:accounts_userprofile_changelist' %}" target="_blank">
+        <i class="fa-solid fa-users text-primary me-2"></i> User Role Management
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="{% url 'admin:mechanics_mechanicprofile_changelist' %}" target="_blank">
+        <i class="fa-solid fa-id-badge text-warning me-2"></i> Mechanic Verification
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="{% url 'admin:workshops_workshop_changelist' %}" target="_blank">
+        <i class="fa-solid fa-building-circle-check text-info me-2"></i> Workshop Verification
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="{% url 'admin:suppliers_supplierprofile_changelist' %}" target="_blank">
+        <i class="fa-solid fa-truck-field text-success me-2"></i> Supplier Verification
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="{% url 'admin:accounts_complaint_changelist' %}" target="_blank">
+        <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> User Complaints
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <span class="small text-muted fw-semibold">Superuser / Staff</span>
+            <h3 class="fw-bold mb-0 text-dark">Active</h3>
+            <small class="text-success"><i class="fa-solid fa-shield-check me-1"></i> Full Privileges</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <span class="small text-muted fw-semibold">Pending Verifications</span>
+            <h3 class="fw-bold mb-0 text-warning">Review</h3>
+            <small class="text-muted">Mechanics & Workshops</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <span class="small text-muted fw-semibold">Open Complaints</span>
+            <h3 class="fw-bold mb-0 text-danger">0</h3>
+            <small class="text-muted">Customer issues</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <span class="small text-muted fw-semibold">System Status</span>
+            <h3 class="fw-bold mb-0 text-success">Healthy</h3>
+            <small class="text-muted">SQLite & Django 6.1</small>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center py-5">
+    <div class="brand-icon mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem; background: linear-gradient(135deg, #101B2D, #1E2D4A);">
+        <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">AutoVia Administration Portal</h4>
+    <p class="text-muted small max-w-600 mx-auto mb-4">
+        You are authenticated with <strong>Administrative Privileges</strong>. You have unrestricted access to manage platform users, approve service-provider verifications, inspect repair estimates, monitor audit logs, and access the native Django Administration backend.
+    </p>
+    <div>
+        <a href="{% url 'admin:index' %}" class="btn btn-dark-navy px-4">
+            <i class="fa-solid fa-gear me-1"></i> Open Django Admin Console
+        </a>
+    </div>
+</div>
+{% endblock %}

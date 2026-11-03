@@ -1,0 +1,148 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Vehicle{% else %}Add Vehicle{% endif %} | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Breadcrumb navigation -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'vehicles:list' %}" class="text-decoration-none">My Vehicles</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{% if is_edit %}Edit Vehicle{% else %}New Vehicle Registration{% endif %}</li>
+            </ol>
+        </nav>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div style="height: 5px; background: linear-gradient(90deg, var(--secondary-color), #FB923C);"></div>
+
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+                    <div class="stat-icon bg-warning bg-opacity-25 text-warning" style="width: 52px; height: 52px;">
+                        <i class="fa-solid fa-car fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">
+                            {% if is_edit %}Edit Vehicle: {{ vehicle.registration_number }}{% else %}Register New Vehicle{% endif %}
+                        </h4>
+                        <p class="text-muted small mb-0">Record manufacturing specifications and initial odometer checkpoint</p>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger py-2 small mb-3">
+                            {% for error in form.non_field_errors %}
+                                <div><i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <!-- Registration Number -->
+                        <div class="col-md-6">
+                            <label for="id_registration_number" class="form-label small fw-semibold">
+                                Registration Plate Number <span class="text-danger">*</span>
+                            </label>
+                            {{ form.registration_number }}
+                            <div class="form-text small">Standard state or regional license plate.</div>
+                            {% if form.registration_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.registration_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Manufacturer -->
+                        <div class="col-md-6">
+                            <label for="id_manufacturer" class="form-label small fw-semibold">
+                                Manufacturer / Make <span class="text-danger">*</span>
+                            </label>
+                            {{ form.manufacturer }}
+                            {% if form.manufacturer.errors %}
+                                <div class="text-danger small mt-1">{{ form.manufacturer.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Model Name -->
+                        <div class="col-md-6">
+                            <label for="id_model_name" class="form-label small fw-semibold">
+                                Model Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.model_name }}
+                            {% if form.model_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.model_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Manufacturing Year -->
+                        <div class="col-md-6">
+                            <label for="id_manufacturing_year" class="form-label small fw-semibold">
+                                Manufacturing Year <span class="text-danger">*</span>
+                            </label>
+                            {{ form.manufacturing_year }}
+                            {% if form.manufacturing_year.errors %}
+                                <div class="text-danger small mt-1">{{ form.manufacturing_year.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Fuel Type -->
+                        <div class="col-md-6">
+                            <label for="id_fuel_type" class="form-label small fw-semibold">
+                                Fuel / Power Type <span class="text-danger">*</span>
+                            </label>
+                            {{ form.fuel_type }}
+                            {% if form.fuel_type.errors %}
+                                <div class="text-danger small mt-1">{{ form.fuel_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Vehicle Color -->
+                        <div class="col-md-6">
+                            <label for="id_color" class="form-label small fw-semibold">
+                                Exterior Color <span class="text-danger">*</span>
+                            </label>
+                            {{ form.color }}
+                            {% if form.color.errors %}
+                                <div class="text-danger small mt-1">{{ form.color.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Chassis Number / VIN -->
+                        <div class="col-md-6">
+                            <label for="id_chassis_number" class="form-label small fw-semibold">
+                                Chassis / VIN Number <span class="text-muted">(Optional)</span>
+                            </label>
+                            {{ form.chassis_number }}
+                            {% if form.chassis_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.chassis_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Current Odometer -->
+                        <div class="col-md-6">
+                            <label for="id_current_odometer" class="form-label small fw-semibold">
+                                Current Odometer (km) <span class="text-danger">*</span>
+                            </label>
+                            {{ form.current_odometer }}
+                            {% if form.current_odometer.errors %}
+                                <div class="text-danger small mt-1">{{ form.current_odometer.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'vehicles:list' %}" class="btn btn-light px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary-autovia px-4">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> {% if is_edit %}Save Changes{% else %}Register Vehicle{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

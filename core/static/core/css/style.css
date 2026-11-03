@@ -1,0 +1,749 @@
+/* ==========================================================
+   AutoVia – Integrated Automobile Management System
+   Custom Stylesheet (Premium Automotive Technology Theme)
+   ========================================================== */
+
+:root {
+  --primary-color: #101B2D;
+  --primary-light: #1E2D4A;
+  --primary-dark: #0A111C;
+  --secondary-color: #F97316;
+  --secondary-hover: #EA580C;
+  --secondary-light: #FFF7ED;
+  --bg-white: #FFFFFF;
+  --bg-light: #F8FAFC;
+  --bg-subtle: #F1F5F9;
+  --text-dark: #0F172A;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
+  --border-color: #E2E8F0;
+  --border-light: #EDF2F7;
+  --success-color: #16A34A;
+  --warning-color: #EAB308;
+  --danger-color: #EF4444;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --shadow-sm: 0 1px 2px 0 rgba(16, 27, 45, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(16, 27, 45, 0.08), 0 2px 4px -2px rgba(16, 27, 45, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(16, 27, 45, 0.1), 0 4px 6px -4px rgba(16, 27, 45, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(16, 27, 45, 0.12), 0 8px 10px -6px rgba(16, 27, 45, 0.06);
+  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Global Reset & Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--text-dark);
+  background-color: var(--bg-white);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+a:hover {
+  color: var(--secondary-hover);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: -0.02em;
+}
+
+/* ----------------------------------------------------
+   Navigation Bar
+   ---------------------------------------------------- */
+.autovia-navbar {
+  background-color: rgba(16, 27, 45, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.85rem 0;
+  transition: var(--transition-normal);
+  z-index: 1050;
+}
+
+.autovia-navbar.scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.65rem 0;
+}
+
+.navbar-brand {
+  font-weight: 800;
+  font-size: 1.55rem;
+  color: #FFFFFF !important;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.navbar-brand .brand-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--secondary-color), #FB923C);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35);
+}
+
+.navbar-brand span.highlight {
+  color: var(--secondary-color);
+}
+
+.nav-link {
+  color: #E2E8F0 !important;
+  font-weight: 500;
+  font-size: 0.97rem;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  transition: var(--transition-fast);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--secondary-color) !important;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.navbar-toggler {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  padding: 0.4rem 0.6rem;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+
+/* Buttons */
+.btn-primary-autovia {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  border-radius: 8px;
+  transition: var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.btn-primary-autovia:hover {
+  background-color: var(--secondary-hover);
+  border-color: var(--secondary-hover);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+}
+
+.btn-outline-autovia {
+  background-color: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.65rem 1.3rem;
+  border-radius: 8px;
+  transition: var(--transition-normal);
+}
+
+.btn-outline-autovia:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
+  color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+.btn-dark-navy {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  border-radius: 8px;
+  transition: var(--transition-normal);
+}
+
+.btn-dark-navy:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ----------------------------------------------------
+   Hero Section
+   ---------------------------------------------------- */
+.hero-section {
+  position: relative;
+  background: linear-gradient(135deg, rgba(16, 27, 45, 0.94) 0%, rgba(10, 17, 28, 0.97) 100%),
+              radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.15) 0%, transparent 40%),
+              #101B2D;
+  color: #FFFFFF;
+  padding: 6.5rem 0 5.5rem;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  color: #FDBA74;
+  padding: 0.35rem 0.9rem;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title {
+  font-size: 3.25rem;
+  line-height: 1.15;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+.hero-subtitle {
+  font-size: 1.18rem;
+  color: #CBD5E1;
+  max-width: 580px;
+  margin-bottom: 2rem;
+  font-weight: 400;
+}
+
+.hero-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.hero-visual-stat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(16, 27, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.hero-visual-stat:last-child {
+  margin-bottom: 0;
+}
+
+.hero-visual-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+/* ----------------------------------------------------
+   Trust Highlights Section
+   ---------------------------------------------------- */
+.trust-section {
+  background-color: var(--bg-white);
+  padding: 4rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.trust-card {
+  padding: 1.75rem 1.5rem;
+  border-radius: 14px;
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  transition: var(--transition-normal);
+  height: 100%;
+}
+
+.trust-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: #CBD5E1;
+}
+
+.trust-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(249, 115, 22, 0.05));
+  color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.trust-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.trust-desc {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin-bottom: 0;
+}
+
+/* ----------------------------------------------------
+   Services Section & Cards
+   ---------------------------------------------------- */
+.section-padding {
+  padding: 5.5rem 0;
+}
+
+.section-tag {
+  color: var(--secondary-color);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-size: 2.35rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 650px;
+  margin: 0 auto 3rem;
+}
+
+.service-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  transition: var(--transition-normal);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--secondary-color), #FDBA74);
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: #CBD5E1;
+}
+
+.service-card:hover::after {
+  opacity: 1;
+}
+
+.service-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  transition: var(--transition-fast);
+}
+
+.service-card:hover .service-icon-wrapper {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+}
+
+.service-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+}
+
+.service-card-text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.service-card-link {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--secondary-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.service-card-link:hover {
+  color: var(--secondary-hover);
+  gap: 0.65rem;
+}
+
+/* ----------------------------------------------------
+   How It Works Section
+   ---------------------------------------------------- */
+.how-it-works-section {
+  background-color: var(--bg-light);
+}
+
+.step-card {
+  text-align: center;
+  padding: 2.5rem 1.75rem;
+  border-radius: 16px;
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  position: relative;
+  height: 100%;
+}
+
+.step-number {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--secondary-color);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4);
+}
+
+.step-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.85rem;
+  margin: 0.5rem auto 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+/* ----------------------------------------------------
+   Why AutoVia Section
+   ---------------------------------------------------- */
+.why-feature-item {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.why-feature-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  background-color: var(--secondary-light);
+  color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+/* ----------------------------------------------------
+   CTA Banner
+   ---------------------------------------------------- */
+.cta-banner {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #17243B 100%);
+  border-radius: 24px;
+  padding: 4rem 3rem;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.cta-banner::before {
+  content: '';
+  position: absolute;
+  right: -50px;
+  bottom: -50px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.25) 0%, transparent 70%);
+}
+
+/* ----------------------------------------------------
+   Footer
+   ---------------------------------------------------- */
+.autovia-footer {
+  background-color: var(--primary-dark);
+  color: #94A3B8;
+  padding: 4.5rem 0 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-brand {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: #94A3B8;
+}
+
+.footer-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.65rem;
+}
+
+.footer-links a {
+  color: #94A3B8;
+  font-size: 0.92rem;
+  transition: var(--transition-fast);
+}
+
+.footer-links a:hover {
+  color: var(--secondary-color);
+  padding-left: 4px;
+}
+
+.footer-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.92rem;
+  color: #94A3B8;
+}
+
+.footer-contact-item i {
+  color: var(--secondary-color);
+  margin-top: 0.25rem;
+}
+
+.footer-bottom {
+  margin-top: 3.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.88rem;
+  color: #64748B;
+}
+
+/* ----------------------------------------------------
+   Page Header (About, Services, Contact)
+   ---------------------------------------------------- */
+.page-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #152238 100%);
+  color: #FFFFFF;
+  padding: 5rem 0 4rem;
+  position: relative;
+}
+
+.page-header h1 {
+  color: #FFFFFF;
+  font-size: 2.85rem;
+  font-weight: 800;
+}
+
+.page-header p {
+  color: #CBD5E1;
+  font-size: 1.15rem;
+  max-width: 600px;
+}
+
+.breadcrumb-autovia {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #94A3B8;
+  margin-bottom: 1rem;
+}
+
+.breadcrumb-autovia a {
+  color: #CBD5E1;
+}
+
+.breadcrumb-autovia a:hover {
+  color: var(--secondary-color);
+}
+
+/* ----------------------------------------------------
+   Contact Form & Info Cards
+   ---------------------------------------------------- */
+.contact-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--primary-color);
+  margin-bottom: 0.4rem;
+}
+
+.form-control, .form-select {
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.96rem;
+  color: var(--text-dark);
+  background-color: var(--bg-white);
+  transition: var(--transition-fast);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  outline: none;
+}
+
+.contact-info-box {
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.contact-info-icon {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 12px;
+  background-color: var(--secondary-light);
+  color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  .navbar-collapse {
+    background-color: var(--primary-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .nav-btn-group {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .hero-title {
+    font-size: 2.15rem;
+  }
+  .section-padding {
+    padding: 3.5rem 0;
+  }
+  .page-header {
+    padding: 3.5rem 0 2.5rem;
+  }
+  .page-header h1 {
+    font-size: 2.2rem;
+  }
+  .cta-banner {
+    padding: 2.5rem 1.5rem;
+  }
+}

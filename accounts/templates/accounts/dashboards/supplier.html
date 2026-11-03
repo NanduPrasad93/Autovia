@@ -1,0 +1,99 @@
+{% extends 'accounts/dashboards/dashboard_base.html' %}
+
+{% block sidebar_title %}Supplier Portal{% endblock %}
+
+{% block sidebar_links %}
+<li class="nav-item">
+    <a class="nav-link active rounded-3 px-3 py-2 text-dark fw-semibold bg-light" href="#">
+        <i class="fa-solid fa-gauge-high text-warning me-2"></i> Overview
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-boxes-stacked text-primary me-2"></i> Spare Parts Catalog
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-cart-flatbed text-success me-2"></i> Incoming Orders
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-warehouse text-info me-2"></i> Stock Inventory
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-store text-warning me-2"></i> Business Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Supplier Verification Banner -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h5 class="fw-bold mb-1">
+                {{ request.user.supplier_profile.business_name|default:"Auto Spare Parts Enterprise" }}
+            </h5>
+            <p class="text-muted small mb-0">Authorized automotive replacement parts supplier verification.</p>
+        </div>
+        <div>
+            <span class="badge {% if request.user.supplier_profile.verification_status == 'VERIFIED' %}bg-success{% elif request.user.supplier_profile.verification_status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 py-2 fs-6">
+                <i class="fa-solid fa-shield-halved me-1"></i> {{ request.user.supplier_profile.get_verification_status_display|default:"PENDING VERIFICATION" }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Listed Spare Parts</span>
+                <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                    <i class="fa-solid fa-cubes"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ request.user.supplier_profile.spare_parts.count|default:"0" }}</h3>
+            <small class="text-muted">Total inventory SKU items</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Pending Orders</span>
+                <div class="p-2 bg-warning bg-opacity-25 text-warning rounded-3">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">0</h3>
+            <small class="text-muted">Awaiting fulfillment / dispatch</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Low Stock Alerts</span>
+                <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">0</h3>
+            <small class="text-muted">Items below restock threshold</small>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center py-5">
+    <div class="brand-icon mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem;">
+        <i class="fa-solid fa-truck-ramp-box"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">Supplier Storefront & Inventory</h4>
+    <p class="text-muted small max-w-600 mx-auto mb-0">
+        You are authenticated with the <strong>Supplier</strong> role. In the next stage, you will be able to upload spare parts catalogs, configure vehicle model compatibility, process customer purchases, and maintain real-time warehouse inventory.
+    </p>
+</div>
+{% endblock %}

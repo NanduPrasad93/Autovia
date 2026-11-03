@@ -1,0 +1,84 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}Mechanic: {{ mechanic.user.get_full_name|default:mechanic.user.username }} | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'mechanics:find_mechanics' %}" class="text-decoration-none">Find Mechanics</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ mechanic.user.get_full_name|default:mechanic.user.username }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Left Column: Profile Card -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center">
+            <div class="stat-icon bg-warning bg-opacity-25 text-warning mx-auto mb-3" style="width: 76px; height: 76px; font-size: 2.2rem;">
+                <i class="fa-solid fa-user-gear"></i>
+            </div>
+            <h4 class="fw-bold mb-1 text-dark">{{ mechanic.user.get_full_name|default:mechanic.user.username }}</h4>
+            <p class="text-muted small mb-3"><i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ mechanic.service_location }}</p>
+
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <span class="badge {% if mechanic.verification_status == 'VERIFIED' %}bg-success{% elif mechanic.verification_status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 py-2">
+                    <i class="fa-solid fa-shield-check me-1"></i> {{ mechanic.get_verification_status_display }}
+                </span>
+                <span class="badge {% if mechanic.is_available %}bg-info text-dark{% else %}bg-secondary{% endif %} px-3 py-2">
+                    <i class="fa-solid fa-circle-dot me-1"></i> {% if mechanic.is_available %}Available{% else %}Offline{% endif %}
+                </span>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'services:request_create' %}?mechanic_id={{ mechanic.pk }}" class="btn btn-primary-autovia">
+                    <i class="fa-solid fa-screwdriver-wrench me-1"></i> Request Repair Service
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mt-4">
+            <h6 class="fw-bold text-dark mb-3">Service Credentials</h6>
+            <div class="d-flex justify-content-between small py-2 border-bottom">
+                <span class="text-muted">Specialization</span>
+                <span class="fw-semibold text-dark">{{ mechanic.specialization }}</span>
+            </div>
+            <div class="d-flex justify-content-between small py-2 border-bottom">
+                <span class="text-muted">Experience</span>
+                <span class="fw-semibold text-dark">{{ mechanic.experience_years }} Years</span>
+            </div>
+            <div class="d-flex justify-content-between small py-2">
+                <span class="text-muted">Member Since</span>
+                <span class="fw-semibold text-dark">{{ mechanic.created_at|date:"M Y" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Description & Direct Request Action -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+            <h5 class="fw-bold text-dark mb-3">About Technician</h5>
+            <p class="text-muted" style="line-height: 1.8;">
+                {{ mechanic.description|default:"Professional automobile technician dedicated to transparent, honest, and high-quality repairs. Experienced across domestic and imported passenger vehicles with precision diagnostic tools." }}
+            </p>
+
+            <h5 class="fw-bold text-dark mt-4 mb-3">Core Expertise</h5>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <span class="badge bg-light text-dark border p-2"><i class="fa-solid fa-check text-success me-1"></i> {{ mechanic.specialization }}</span>
+                <span class="badge bg-light text-dark border p-2"><i class="fa-solid fa-check text-success me-1"></i> Engine Diagnostics</span>
+                <span class="badge bg-light text-dark border p-2"><i class="fa-solid fa-check text-success me-1"></i> Periodic Preventative Maintenance</span>
+                <span class="badge bg-light text-dark border p-2"><i class="fa-solid fa-check text-success me-1"></i> Roadside Emergency Assistance</span>
+            </div>
+
+            <div class="p-4 rounded-3 bg-light border border-secondary border-opacity-25 mt-3">
+                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-handshake-angle text-warning me-2"></i> AutoVia Guarantee</h6>
+                <p class="small text-muted mb-0">
+                    All repair requests submitted to verified mechanics generate an unalterable itemized estimate separating labor, parts, and additional charges. Work commences only after your explicit in-app approval.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

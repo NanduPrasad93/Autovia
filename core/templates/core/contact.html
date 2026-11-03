@@ -1,0 +1,155 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Contact Us | AutoVia – Automobile Management System{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<header class="page-header">
+    <div class="container">
+        <div class="breadcrumb-autovia">
+            <a href="{% url 'core:home' %}">Home</a>
+            <i class="fa-solid fa-chevron-right small"></i>
+            <span>Contact Us</span>
+        </div>
+        <h1>Get in Touch with AutoVia</h1>
+        <p>Have questions about vehicle management, partner registration, or need assistance? Our automotive support team is here to help 24/7.</p>
+    </div>
+</header>
+
+<!-- Contact Form & Info Section -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Left Column: Contact Form -->
+            <div class="col-lg-7">
+                <div class="contact-card">
+                    <div class="mb-4">
+                        <span class="section-tag">Direct Communication</span>
+                        <h3 class="fw-bold text-dark mb-2">Send Us a Message</h3>
+                        <p class="text-muted small">Fill out the form below and our team will respond within 24 business hours.</p>
+                    </div>
+
+                    <form method="POST" action="{% url 'core:contact' %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">
+                                Full Name <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="fa-solid fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="id_name" name="name" placeholder="John Doe" required>
+                                <div class="invalid-feedback">
+                                    Please provide your name.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">
+                                Email Address <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control border-start-0" id="id_email" name="email" placeholder="john.doe@example.com" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email address.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-3">
+                            <label for="id_subject" class="form-label">
+                                Subject <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">
+                                    <i class="fa-solid fa-tag"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="id_subject" name="subject" placeholder="Inquiry about workshop verification or support" required>
+                                <div class="invalid-feedback">
+                                    Please provide a message subject.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-4">
+                            <label for="id_message" class="form-label">
+                                Message <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="id_message" name="message" rows="5" placeholder="Write your question, repair inquiry, or feedback here in detail..." required></textarea>
+                            <div class="invalid-feedback">
+                                Please enter your message.
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary-autovia btn-lg w-100">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Support & Contact Information -->
+            <div class="col-lg-5">
+                <div class="d-flex flex-column gap-3">
+
+                    <div class="contact-info-box">
+                        <div class="contact-info-icon">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">24/7 Roadside & Helpline</h5>
+                            <p class="text-muted small mb-1">Instant support for breakdowns, towing coordination, and urgent repair requests.</p>
+                            <span class="fw-bold text-dark fs-6">+1 (800) 555-AUTO (2886)</span>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-box">
+                        <div class="contact-info-icon">
+                            <i class="fa-solid fa-envelope-open-text"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">General Inquiries & Support</h5>
+                            <p class="text-muted small mb-1">For account verification, supplier onboarding, and system feedback.</p>
+                            <span class="fw-bold text-dark fs-6">support@autovia-system.com</span>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-box">
+                        <div class="contact-info-icon">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Headquarters</h5>
+                            <p class="text-muted small mb-1">AutoVia Innovation Tech Park, Suite 400, Silicon Corridor</p>
+                            <span class="text-muted small">Operating across 50+ major metropolitan zones.</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-4 bg-white border shadow-sm mt-2">
+                        <h5 class="fw-bold mb-2">Automotive Professional?</h5>
+                        <p class="text-muted small mb-3">Are you a mechanic, workshop owner, or spare part supplier looking to join our verified network?</p>
+                        <a href="{% url 'core:register' %}" class="btn btn-outline-autovia text-dark border-dark btn-sm fw-semibold">
+                            Partner with AutoVia <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}About Us | AutoVia – Automobile Management System{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<header class="page-header">
+    <div class="container">
+        <div class="breadcrumb-autovia">
+            <a href="{% url 'core:home' %}">Home</a>
+            <i class="fa-solid fa-chevron-right small"></i>
+            <span>About Us</span>
+        </div>
+        <h1>Pioneering Intelligent Automobile Management</h1>
+        <p>Learn about AutoVia's mission to bring digital transparency, certified expertise, and connected care to every vehicle owner.</p>
+    </div>
+</header>
+
+<!-- Introduction Section -->
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="section-tag">About AutoVia</span>
+                <h2 class="section-title mb-4">Redefining the Automobile Ownership & Care Lifecycle</h2>
+                <p class="lead text-dark fw-medium">
+                    AutoVia was built to eliminate the opacity, fragmentation, and uncertainty that vehicle owners face when seeking maintenance, repairs, or spare parts.
+                </p>
+                <p class="text-muted">
+                    Modern automobiles are advanced technological assets, yet managing their upkeep has remained an analogue, fragmented process. AutoVia combines cloud software, verified supplier networks, and real-time maintenance analytics to provide vehicle owners, independent mechanics, specialized workshops, and part suppliers with an integrated digital ecosystem.
+                </p>
+                <p class="text-muted">
+                    From your daily commute to long-distance journeys, AutoVia ensures that expert mechanics are always within reach, transparent quotes precede every repair, and full digital vehicle histories are permanently preserved.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-4 p-md-5 rounded-4 border bg-light shadow-sm position-relative">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="trust-icon-box mb-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Trusted Automotive Network</h4>
+                            <span class="text-muted small">Standardized Integrity & Quality</span>
+                        </div>
+                    </div>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                        <li class="d-flex align-items-start gap-3">
+                            <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                            <div>
+                                <strong class="text-dark d-block">Rigorous Verification</strong>
+                                <span class="text-muted small">Every mechanic and workshop is validated against state licensing, facilities, and technical capabilities.</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-3">
+                            <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                            <div>
+                                <strong class="text-dark d-block">Cost Transparency Protocol</strong>
+                                <span class="text-muted small">Upfront, unalterable digital repair estimates with separated labor, spare parts, and incidental costs.</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-3">
+                            <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                            <div>
+                                <strong class="text-dark d-block">Permanent Digital Passports</strong>
+                                <span class="text-muted small">Immutable records of all services and odometer readings that bolster resale value and maintenance hygiene.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Mission -->
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm p-4 p-md-5 rounded-4">
+                    <div class="trust-icon-box" style="background: rgba(16, 27, 45, 0.08); color: var(--primary-color);">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">Our Mission</h3>
+                    <p class="text-muted fs-6 mb-4">
+                        To empower automobile owners with complete transparency, convenience, and control over their vehicles, while providing verified mechanics, accredited workshops, and genuine parts suppliers with a premier platform to deliver trusted automotive care.
+                    </p>
+                    <ul class="list-unstyled text-muted small d-flex flex-column gap-2 mb-0">
+                        <li><i class="fa-solid fa-arrow-right text-warning me-2"></i> Eradicate hidden fees and unverified repair charges.</li>
+                        <li><i class="fa-solid fa-arrow-right text-warning me-2"></i> Streamline emergency roadside mechanic dispatch.</li>
+                        <li><i class="fa-solid fa-arrow-right text-warning me-2"></i> Provide verified OEM part tracing and verification.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Vision -->
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm p-4 p-md-5 rounded-4">
+                    <div class="trust-icon-box">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">Our Vision</h3>
+                    <p class="text-muted fs-6 mb-4">
+                        To become the global benchmark in intelligent automobile management—a world where every automobile has an intelligent digital record, every repair is honest and predictable, and sustainable transition towards electric mobility is seamless.
+                    </p>
+                    <ul class="list-unstyled text-muted small d-flex flex-column gap-2 mb-0">
+                        <li><i class="fa-solid fa-arrow-right text-warning me-2"></i> Unified fleet intelligence for ICE, Hybrid, and EV models.</li>
+                        <li><i class="fa-solid fa-arrow-right text-warning me-2"></i> Predictive maintenance algorithms saving billions in breakdowns.</li>
+                        <li><i class="fa-solid fa-arrow-right text-warning me-2"></i> An interconnected community of automotive craftsmanship.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Platform Benefits Section -->
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-tag">Value Matrix</span>
+            <h2 class="section-title">Benefits Across the Ecosystem</h2>
+            <p class="section-subtitle">AutoVia creates immense tangible value tailored for each participant in the automotive journey.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Benefit 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="p-3 rounded-3 bg-primary bg-opacity-10 text-primary d-inline-block mb-3 fs-4">
+                        <i class="fa-solid fa-car-tunnel"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">For Vehicle Owners</h5>
+                    <p class="text-muted small mb-0">Single touchpoint to book verified mechanics, receive itemized repair quotes, order genuine spare parts, and monitor lifetime fuel and maintenance expenses.</p>
+                </div>
+            </div>
+
+            <!-- Benefit 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="p-3 rounded-3 bg-warning bg-opacity-25 text-warning d-inline-block mb-3 fs-4">
+                        <i class="fa-solid fa-toolbox"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">For Mechanics</h5>
+                    <p class="text-muted small mb-0">Direct access to verified customer repair requests, transparent scheduling, digital quotation tools, and a recognized professional profile that drives repeat business.</p>
+                </div>
+            </div>
+
+            <!-- Benefit 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="p-3 rounded-3 bg-success bg-opacity-10 text-success d-inline-block mb-3 fs-4">
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">For Workshops</h5>
+                    <p class="text-muted small mb-0">Digital customer intake, formal repair estimate generator, streamlined service job tracking, and enhanced brand credibility with verified badge status.</p>
+                </div>
+            </div>
+
+            <!-- Benefit 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="p-3 rounded-3 bg-info bg-opacity-10 text-info d-inline-block mb-3 fs-4">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">For Spare Part Suppliers</h5>
+                    <p class="text-muted small mb-0">Direct online storefront to showcase parts catalog, model compatibility matching, incoming purchase order processing, and verified customer reach.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section-padding bg-light">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-3">Join the AutoVia Community</h2>
+        <p class="text-muted mb-4 max-w-600 mx-auto">Experience modern automotive management designed for the digital age. Register your car or become a verified service partner today.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'core:register' %}" class="btn btn-primary-autovia px-4 py-2">Get Started</a>
+            <a href="{% url 'core:contact' %}" class="btn btn-dark-navy px-4 py-2">Contact Us</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

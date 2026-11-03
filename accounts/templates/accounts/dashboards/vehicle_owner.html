@@ -1,0 +1,92 @@
+{% extends 'accounts/dashboards/dashboard_base.html' %}
+
+{% block sidebar_title %}Vehicle Owner Menu{% endblock %}
+
+{% block sidebar_links %}
+<li class="nav-item">
+    <a class="nav-link active rounded-3 px-3 py-2 text-dark fw-semibold bg-light" href="#">
+        <i class="fa-solid fa-gauge-high text-warning me-2"></i> Overview
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-car text-primary me-2"></i> My Vehicles
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-screwdriver-wrench text-info me-2"></i> Service Requests
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-receipt text-success me-2"></i> Expense Tracker
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-box text-warning me-2"></i> Spare Part Orders
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
+        <i class="fa-solid fa-circle-exclamation text-danger me-2"></i> Complaints & Help
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Registered Vehicles</span>
+                <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                    <i class="fa-solid fa-car"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ request.user.vehicles.count|default:"0" }}</h3>
+            <small class="text-muted">Total owned vehicles</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Active Service Requests</span>
+                <div class="p-2 bg-warning bg-opacity-25 text-warning rounded-3">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">0</h3>
+            <small class="text-muted">Pending workshop/mechanic review</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Total Expenses Recorded</span>
+                <div class="p-2 bg-success bg-opacity-10 text-success rounded-3">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">$0.00</h3>
+            <small class="text-muted">Lifetime logged expenditures</small>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center py-5">
+    <div class="brand-icon mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem;">
+        <i class="fa-solid fa-car"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">Welcome to Your Garage</h4>
+    <p class="text-muted small max-w-600 mx-auto mb-4">
+        You are authenticated as a <strong>Vehicle Owner</strong>. From this console, you will be able to register new vehicles, request roadside or workshop repairs, approve quotes, track fuel and maintenance expenses, and access nearby charging stations.
+    </p>
+    <div>
+        <a href="{% url 'core:services' %}" class="btn btn-primary-autovia px-4">
+            <i class="fa-solid fa-compass me-1"></i> Browse Automobile Services
+        </a>
+    </div>
+</div>
+{% endblock %}

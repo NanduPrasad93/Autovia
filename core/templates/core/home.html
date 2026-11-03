@@ -1,0 +1,402 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}AutoVia – Integrated Automobile Management and Assistance System{% endblock %}
+
+{% block content %}
+
+<!-- 1. HERO SECTION -->
+<section class="hero-section">
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-shield-check"></i> Next-Gen Automobile Ecosystem
+                </div>
+                <h1 class="hero-title">
+                    Your Vehicle. <br>
+                    <span style="color: var(--secondary-color);">Our Priority.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    AutoVia is an integrated automobile management platform that unifies vehicle diagnostics, certified mechanic assistance, verified workshop quotes, genuine spare parts ordering, and lifetime expense analytics into one intelligent digital cockpit.
+                </p>
+                <div class="d-flex flex-wrap gap-3 pt-2">
+                    <a href="{% url 'core:register' %}" class="btn btn-primary-autovia btn-lg">
+                        <i class="fa-solid fa-arrow-right"></i> Get Started
+                    </a>
+                    <a href="{% url 'core:services' %}" class="btn btn-outline-autovia btn-lg">
+                        <i class="fa-solid fa-compass"></i> Explore Services
+                    </a>
+                </div>
+
+                <!-- Fast Statistics Banner -->
+                <div class="row mt-5 pt-3 g-3 border-top border-secondary border-opacity-25">
+                    <div class="col-4">
+                        <div class="fs-3 fw-bold text-white">99.8%</div>
+                        <div class="small text-secondary text-uppercase fw-semibold" style="letter-spacing: 0.05em;">Verified Partners</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-3 fw-bold text-white">24/7</div>
+                        <div class="small text-secondary text-uppercase fw-semibold" style="letter-spacing: 0.05em;">Roadside Assist</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-3 fw-bold text-white">100%</div>
+                        <div class="small text-secondary text-uppercase fw-semibold" style="letter-spacing: 0.05em;">Cost Transparency</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Hero Card / Visual Interactive Mockup -->
+            <div class="col-lg-5">
+                <div class="hero-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1">
+                            <i class="fa-solid fa-circle-dot me-1"></i> Live System Status
+                        </span>
+                        <small class="text-secondary"><i class="fa-solid fa-satellite-dish me-1"></i> Connected</small>
+                    </div>
+
+                    <!-- Visual Car Card Preview -->
+                    <div class="bg-dark bg-opacity-50 p-3 rounded-3 mb-3 border border-secondary border-opacity-25">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-25 text-warning p-3 rounded-3">
+                                <i class="fa-solid fa-car-rear fs-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-white mb-0 fw-bold">Tesla Model 3 / BMW M340i</h6>
+                                <small class="text-secondary">Reg: KA-01-MJ-2024 &bull; Petrol/EV</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Highlight Metrics -->
+                    <div class="hero-visual-stat">
+                        <div class="hero-visual-icon bg-warning bg-opacity-25 text-warning">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                        </div>
+                        <div>
+                            <div class="text-white fw-semibold small">Service Status</div>
+                            <div class="text-secondary small">Scheduled Maintenance Due in 1,200 km</div>
+                        </div>
+                    </div>
+
+                    <div class="hero-visual-stat">
+                        <div class="hero-visual-icon bg-success bg-opacity-25 text-success">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div>
+                            <div class="text-white fw-semibold small">Transparent Estimates</div>
+                            <div class="text-secondary small">Quotation received from Downtown SpeedWorks</div>
+                        </div>
+                    </div>
+
+                    <div class="hero-visual-stat">
+                        <div class="hero-visual-icon bg-info bg-opacity-25 text-info">
+                            <i class="fa-solid fa-charging-station"></i>
+                        </div>
+                        <div>
+                            <div class="text-white fw-semibold small">Nearby Energy Hubs</div>
+                            <div class="text-secondary small">3 High-Speed EV Chargers within 2.5 km</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. TRUST SECTION -->
+<section class="trust-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-card">
+                    <div class="trust-icon-box">
+                        <i class="fa-solid fa-warehouse"></i>
+                    </div>
+                    <h5 class="trust-title">Multi-Vehicle Fleet</h5>
+                    <p class="trust-desc">Manage family cars, commercial fleets, and electric vehicles from a single centralized user dashboard.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-card">
+                    <div class="trust-icon-box">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <h5 class="trust-title">Verified Providers</h5>
+                    <p class="trust-desc">Every mechanic, service centre, and supplier undergoes strict background and certification verification.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-card">
+                    <div class="trust-icon-box">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <h5 class="trust-title">Transparent Estimates</h5>
+                    <p class="trust-desc">Detailed itemized quotes with labor, parts, and additional charges before any repair commences.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-card">
+                    <div class="trust-icon-box">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h5 class="trust-title">Expense Tracking</h5>
+                    <p class="trust-desc">Log fuel, insurance, maintenance, and charging expenses with detailed financial analytics over time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3. OUR SERVICES SECTION -->
+<section class="section-padding bg-light" id="services">
+    <div class="container">
+        <div class="text-center">
+            <span class="section-tag">Capabilities</span>
+            <h2 class="section-title">Comprehensive Automobile Services</h2>
+            <p class="section-subtitle">Everything your automobile needs throughout its lifecycle, powered by real-time intelligence and verified professionals.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- 1. Vehicle Management -->
+            <div class="col-lg-4 col-md-6">
+                <div class="service-card">
+                    <div class="service-icon-wrapper">
+                        <i class="fa-solid fa-car"></i>
+                    </div>
+                    <h4 class="service-card-title">Vehicle Management</h4>
+                    <p class="service-card-text">Store complete digital passports for all your automobiles. Track odometer readings, manufacturing specifications, fuel types, and compliance documentation securely.</p>
+                    <a href="{% url 'core:services' %}#vehicles" class="service-card-link">
+                        Explore details <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Find Mechanics -->
+            <div class="col-lg-4 col-md-6">
+                <div class="service-card">
+                    <div class="service-icon-wrapper">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                    <h4 class="service-card-title">Find Mechanics</h4>
+                    <p class="service-card-text">Locate certified roadside and specialized mechanics near you. Filter by specialization, customer ratings, years of expertise, and immediate on-call availability.</p>
+                    <a href="{% url 'core:services' %}#mechanics" class="service-card-link">
+                        Explore details <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Service Centres -->
+            <div class="col-lg-4 col-md-6">
+                <div class="service-card">
+                    <div class="service-icon-wrapper">
+                        <i class="fa-solid fa-building-shield"></i>
+                    </div>
+                    <h4 class="service-card-title">Service Centres</h4>
+                    <p class="service-card-text">Book repairs and periodical checkups at accredited workshops. Compare capabilities, body shop equipment, and request upfront digital repair estimates.</p>
+                    <a href="{% url 'core:services' %}#workshops" class="service-card-link">
+                        Explore details <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Spare Parts -->
+            <div class="col-lg-4 col-md-6">
+                <div class="service-card">
+                    <div class="service-icon-wrapper">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <h4 class="service-card-title">Spare Parts</h4>
+                    <p class="service-card-text">Order authentic OEM and certified aftermarket spare parts directly from verified suppliers with exact model compatibility matching and delivery tracking.</p>
+                    <a href="{% url 'core:services' %}#spare-parts" class="service-card-link">
+                        Explore details <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 5. Expense Analytics -->
+            <div class="col-lg-4 col-md-6">
+                <div class="service-card">
+                    <div class="service-icon-wrapper">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h4 class="service-card-title">Expense Analytics</h4>
+                    <p class="service-card-text">Gain complete visibility into your vehicle operating costs. Categorize fuel, servicing, repairs, and insurance to monitor your cost-per-kilometer.</p>
+                    <a href="{% url 'core:services' %}#expenses" class="service-card-link">
+                        Explore details <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6. EV Charging Stations -->
+            <div class="col-lg-4 col-md-6">
+                <div class="service-card">
+                    <div class="service-icon-wrapper">
+                        <i class="fa-solid fa-bolt-lightning"></i>
+                    </div>
+                    <h4 class="service-card-title">EV Charging Stations</h4>
+                    <p class="service-card-text">Discover nearby electric vehicle fast-charging hubs and traditional fuel stations with real-time operational status, connector types, and navigation routes.</p>
+                    <a href="{% url 'core:services' %}#ev-charging" class="service-card-link">
+                        Explore details <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4. HOW IT WORKS SECTION -->
+<section class="section-padding bg-white how-it-works-section">
+    <div class="container">
+        <div class="text-center">
+            <span class="section-tag">Process</span>
+            <h2 class="section-title">How AutoVia Works</h2>
+            <p class="section-subtitle">A seamless journey connecting you with automotive care in just three intuitive steps.</p>
+        </div>
+
+        <div class="row g-4 pt-3">
+            <div class="col-lg-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <i class="fa-solid fa-address-card"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Register Your Vehicle</h4>
+                    <p class="text-muted mb-0">Add your vehicle details, registration number, fuel type, and current mileage in seconds to build your digital vehicle profile.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <i class="fa-solid fa-magnifying-glass-location"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Find the Right Service</h4>
+                    <p class="text-muted mb-0">Browse verified mechanics, workshops, or genuine spare parts. Submit service requests describing the exact issue and request itemized estimates.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Track Repairs & Expenses</h4>
+                    <p class="text-muted mb-0">Receive real-time repair progress updates, approve quotes, log expenses, and retain permanent digital service records for peak resale value.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5. WHY AUTOVIA SECTION -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="section-tag">Platform Value</span>
+                <h2 class="section-title mb-4">Why Vehicle Owners & Professionals Choose AutoVia</h2>
+                <p class="text-muted mb-4">Automobile maintenance has historically been fragmented, opaque, and stressful. AutoVia changes the equation by introducing end-to-end transparency, professional accountability, and digital convenience.</p>
+
+                <div class="why-feature-item">
+                    <div class="why-feature-icon">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Unmatched Transparency</h5>
+                        <p class="text-muted mb-0">No more surprise bills. Every service request receives an itemized breakdown of labor, replacement parts, and estimated completion times.</p>
+                    </div>
+                </div>
+
+                <div class="why-feature-item">
+                    <div class="why-feature-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Centralized Digital Recordkeeping</h5>
+                        <p class="text-muted mb-0">Keep every invoice, service log, and odometer checkpoint safely saved in cloud storage, creating a verifiable service history.</p>
+                    </div>
+                </div>
+
+                <div class="why-feature-item">
+                    <div class="why-feature-icon">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Connected Ecosystem</h5>
+                        <p class="text-muted mb-0">Directly links vehicle owners with verified mechanics, licensed workshops, and authorized spare part suppliers in one unified network.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphic / Callout Column -->
+            <div class="col-lg-6">
+                <div class="p-4 p-md-5 rounded-4 bg-white border shadow-sm">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="p-3 rounded-circle bg-warning bg-opacity-25 text-warning fs-3">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Automotive Excellence</h4>
+                            <small class="text-muted">Built for Reliability, Safety & Performance</small>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-3 p-3 mb-3 bg-light">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold small">Verified Mechanics Verification Rate</span>
+                            <span class="text-success fw-bold small">100% Inspected</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-3 p-3 mb-3 bg-light">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold small">Estimate Accuracy Rate</span>
+                            <span class="text-primary fw-bold small">98.4% Guaranteed</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 98%"></div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-3 p-3 bg-light">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold small">Customer Satisfaction Index</span>
+                            <span class="text-warning fw-bold small">4.9 / 5.0 Stars</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 96%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 6. CALL TO ACTION BANNER -->
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="cta-banner">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <h2 class="text-white fw-bold display-6 mb-3">Ready to Transform Your Vehicle Management?</h2>
+                    <p class="text-light mb-0 fs-5" style="color: #CBD5E1 !important;">
+                        Join thousands of automobile owners and automotive professionals on AutoVia. Register your vehicle today and experience smart, transparent vehicle care.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="{% url 'core:register' %}" class="btn btn-primary-autovia btn-lg px-4 py-3 shadow">
+                        <i class="fa-solid fa-car-on"></i> Get Started Free
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

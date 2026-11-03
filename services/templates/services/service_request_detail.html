@@ -1,0 +1,143 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}Service Request #{{ service_request.id }} | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'services:request_list' %}" class="text-decoration-none">Service Requests</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Request #{{ service_request.id }}</li>
+    </ol>
+</nav>
+
+<!-- Header Card -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h3 class="fw-bold mb-0 text-dark">Service Request #{{ service_request.id }}</h3>
+                <span class="badge {% if service_request.status == 'COMPLETED' %}bg-success{% elif service_request.status == 'PENDING' %}bg-warning text-dark{% elif service_request.status == 'CANCELLED' or service_request.status == 'REJECTED' %}bg-danger{% else %}bg-primary{% endif %} px-3 py-1 fs-6">
+                    {{ service_request.get_status_display }}
+                </span>
+            </div>
+            <div class="text-muted small mt-1">
+                <span>Submitted on {{ service_request.created_at|date:"M d, Y H:i" }}</span>
+                <span class="mx-2">&bull;</span>
+                <span>Scheduled for: <strong>{{ service_request.requested_date|date:"M d, Y H:i" }}</strong></span>
+            </div>
+        </div>
+
+        {% if service_request.status == 'PENDING' or service_request.status == 'ACCEPTED' %}
+            <form method="POST" action="{% url 'services:request_cancel' service_request.pk %}" class="m-0" onsubmit="return confirm('Are you sure you want to cancel this service request?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fa-solid fa-ban me-1"></i> Cancel Request
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <!-- Details Grid -->
+    <div class="row g-4 mt-3 pt-3 border-top">
+        <div class="col-md-4">
+            <small class="text-muted d-block mb-1">Target Automobile</small>
+            <a href="{% url 'vehicles:detail' service_request.vehicle.pk %}" class="fw-bold text-dark text-decoration-none d-flex align-items-center gap-2">
+                <i class="fa-solid fa-car text-primary"></i>
+                {{ service_request.vehicle.manufacturer }} {{ service_request.vehicle.model_name }}
+            </a>
+            <div class="small text-muted font-monospace">{{ service_request.vehicle.registration_number }} &bull; {{ service_request.vehicle.get_fuel_type_display }}</div>
+        </div>
+
+        <div class="col-md-4">
+            <small class="text-muted d-block mb-1">Assigned Service Provider</small>
+            {% if service_request.mechanic %}
+                <div class="fw-semibold text-dark">
+                    <i class="fa-solid fa-user-gear text-warning me-1"></i>
+                    {{ service_request.mechanic.user.get_full_name|default:service_request.mechanic.user.username }}
+                </div>
+                <small class="text-muted">Certified Mechanic &bull; {{ service_request.mechanic.service_location }}</small>
+            {% elif service_request.workshop %}
+                <div class="fw-semibold text-dark">
+                    <i class="fa-solid fa-building text-primary me-1"></i>
+                    {{ service_request.workshop.workshop_name }}
+                </div>
+                <small class="text-muted">Authorized Workshop &bull; {{ service_request.workshop.phone_number }}</small>
+            {% else %}
+                <span class="badge bg-secondary bg-opacity-25 text-secondary">Broadcast to all nearby providers</span>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <small class="text-muted d-block mb-1">Repair Estimates Received</small>
+            <span class="fw-bold text-dark fs-5">{{ estimates.count }} Quote{{ estimates.count|pluralize }}</span>
+        </div>
+    </div>
+
+    <div class="mt-4 pt-3 border-top">
+        <h6 class="fw-bold text-dark mb-1">Problem Description</h6>
+        <p class="text-muted small mb-0 p-3 bg-light rounded-3">{{ service_request.problem_description }}</p>
+    </div>
+</div>
+
+<!-- Estimates Section & Comparison -->
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">Repair Estimates & Quotations</h4>
+            <p class="text-muted small mb-0">Transparent cost breakdowns submitted by mechanics and service centres</p>
+        </div>
+        <span class="badge bg-light text-dark border px-3 py-2">
+            <i class="fa-solid fa-scale-balanced me-1 text-primary"></i> Compare Quotes
+        </span>
+    </div>
+
+    {% if estimates %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Provider</th>
+                        <th>Labor Cost</th>
+                        <th>Parts Cost</th>
+                        <th>Additional Cost</th>
+                        <th>Total Cost</th>
+                        <th>Est. Completion</th>
+                        <th>Quotation Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for estimate in estimates %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">
+                                    {{ estimate.provider.get_full_name|default:estimate.provider.username }}
+                                </div>
+                                <small class="text-muted">Quote #{{ estimate.id }} &bull; {{ estimate.created_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>${{ estimate.labor_cost }}</td>
+                            <td>${{ estimate.parts_cost }}</td>
+                            <td>${{ estimate.additional_cost }}</td>
+                            <td class="fw-bold text-success fs-6">${{ estimate.total_cost }}</td>
+                            <td class="small">{{ estimate.estimated_completion_date|default:"TBD upon inspection" }}</td>
+                            <td><small class="text-muted">{{ estimate.description|default:"Standard service quote" }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5 text-muted small">
+            <div class="brand-icon mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.5rem; background: rgba(16, 27, 45, 0.08); color: var(--primary-color);">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">No Estimates Submitted Yet</h5>
+            <p class="max-w-600 mx-auto mb-0 text-muted">
+                Your assigned technician or workshop is currently reviewing the problem description. You will see itemized labor and parts quotes displayed here as soon as they are submitted.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Our Services | AutoVia – Automobile Management System{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<header class="page-header">
+    <div class="container">
+        <div class="breadcrumb-autovia">
+            <a href="{% url 'core:home' %}">Home</a>
+            <i class="fa-solid fa-chevron-right small"></i>
+            <span>Services</span>
+        </div>
+        <h1>End-to-End Automotive Services</h1>
+        <p>Explore AutoVia's unified suite of digital automobile solutions engineered for vehicle owners, mechanics, certified workshops, and parts suppliers.</p>
+    </div>
+</header>
+
+<!-- Services Detailed Presentation -->
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-tag">Core Capabilities</span>
+            <h2 class="section-title">The AutoVia Ecosystem</h2>
+            <p class="section-subtitle">Six comprehensive pillars designed to take the friction and uncertainty out of automobile ownership and repair.</p>
+        </div>
+
+        <div class="d-flex flex-column gap-5">
+
+            <!-- 1. Vehicle Management -->
+            <div class="p-4 p-lg-5 rounded-4 border bg-light shadow-sm" id="vehicles">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-2 text-center text-lg-start">
+                        <div class="service-icon-wrapper mx-auto mx-lg-0" style="width: 80px; height: 80px; font-size: 2.2rem;">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-1 fw-bold">Pillar 01</span>
+                        <h3 class="fw-bold mb-2">Centralized Vehicle Management</h3>
+                        <p class="text-muted mb-3">
+                            A secure digital passport for every automobile you own. Manage multiple family cars, bikes, or commercial vehicles under one account. Maintain accurate odometer logs, manufacturing records, color, chassis identification numbers, and fuel specifications.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Multiple Vehicle Profiles</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Fuel Type Classification</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Odometer Tracking</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="{% url 'core:register' %}" class="btn btn-primary-autovia">
+                            <i class="fa-solid fa-plus"></i> Register a Vehicle
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Find Mechanics -->
+            <div class="p-4 p-lg-5 rounded-4 border bg-light shadow-sm" id="mechanics">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-2 text-center text-lg-start">
+                        <div class="service-icon-wrapper mx-auto mx-lg-0" style="width: 80px; height: 80px; font-size: 2.2rem;">
+                            <i class="fa-solid fa-wrench"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <span class="badge bg-warning bg-opacity-25 text-warning mb-2 px-3 py-1 fw-bold">Pillar 02</span>
+                        <h3 class="fw-bold mb-2">On-Demand Verified Mechanics</h3>
+                        <p class="text-muted mb-3">
+                            Find vetted, accredited mobile and independent mechanics specializing in engines, transmissions, brake systems, air conditioning, and electrical diagnostics. Submit requests, view mechanic certifications, and coordinate roadside or home assistance.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Specialization Filters</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Live Availability Status</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Verified Credentials</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="{% url 'core:contact' %}" class="btn btn-dark-navy">
+                            <i class="fa-solid fa-magnifying-glass"></i> Request a Mechanic
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Certified Service Centres & Workshops -->
+            <div class="p-4 p-lg-5 rounded-4 border bg-light shadow-sm" id="workshops">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-2 text-center text-lg-start">
+                        <div class="service-icon-wrapper mx-auto mx-lg-0" style="width: 80px; height: 80px; font-size: 2.2rem;">
+                            <i class="fa-solid fa-building-shield"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <span class="badge bg-success bg-opacity-10 text-success mb-2 px-3 py-1 fw-bold">Pillar 03</span>
+                        <h3 class="fw-bold mb-2">Authorized Workshops & Body Shops</h3>
+                        <p class="text-muted mb-3">
+                            Connect with verified automotive workshops equipped with advanced diagnostic lifts, paint booths, wheel alignment systems, and major overhaul machinery. Receive transparent digital repair estimates before work begins.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Itemized Estimates (Labor + Parts)</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Digital Job Cards</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Completion Date Forecasts</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="{% url 'core:contact' %}" class="btn btn-primary-autovia">
+                            <i class="fa-solid fa-calendar-check"></i> Book Workshop Service
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Spare Parts -->
+            <div class="p-4 p-lg-5 rounded-4 border bg-light shadow-sm" id="spare-parts">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-2 text-center text-lg-start">
+                        <div class="service-icon-wrapper mx-auto mx-lg-0" style="width: 80px; height: 80px; font-size: 2.2rem;">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <span class="badge bg-info bg-opacity-10 text-info mb-2 px-3 py-1 fw-bold">Pillar 04</span>
+                        <h3 class="fw-bold mb-2">Genuine Spare Parts Marketplace</h3>
+                        <p class="text-muted mb-3">
+                            Direct inventory from certified spare part suppliers. Browse brake pads, filters, spark plugs, belts, suspension struts, and lighting assemblies with vehicle make and model compatibility verification, transparent pricing, and direct order placement.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Model Compatibility Matching</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Real-time Stock Quantities</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Order Delivery Tracking</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="{% url 'core:register' %}" class="btn btn-dark-navy">
+                            <i class="fa-solid fa-cart-shopping"></i> Browse Catalog
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Expense Analytics -->
+            <div class="p-4 p-lg-5 rounded-4 border bg-light shadow-sm" id="expenses">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-2 text-center text-lg-start">
+                        <div class="service-icon-wrapper mx-auto mx-lg-0" style="width: 80px; height: 80px; font-size: 2.2rem;">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary mb-2 px-3 py-1 fw-bold">Pillar 05</span>
+                        <h3 class="fw-bold mb-2">Automobile Expense & Financial Analytics</h3>
+                        <p class="text-muted mb-3">
+                            Take complete financial control over automobile ownership. Log and categorize every fuel fill-up, EV charge, routine servicing, emergency repair, insurance renewal, and spare part purchase to understand cost-per-kilometer and annual maintenance trends.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Multi-Category Logging</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Visual Expense Breakdown</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Exportable Financial Records</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="{% url 'core:register' %}" class="btn btn-primary-autovia">
+                            <i class="fa-solid fa-calculator"></i> Track Your Expenses
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. EV Charging Stations & Fuel Locations -->
+            <div class="p-4 p-lg-5 rounded-4 border bg-light shadow-sm" id="ev-charging">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-2 text-center text-lg-start">
+                        <div class="service-icon-wrapper mx-auto mx-lg-0" style="width: 80px; height: 80px; font-size: 2.2rem;">
+                            <i class="fa-solid fa-bolt-lightning"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <span class="badge bg-success bg-opacity-10 text-success mb-2 px-3 py-1 fw-bold">Pillar 06</span>
+                        <h3 class="fw-bold mb-2">EV Charging Hubs & Fuel Stations</h3>
+                        <p class="text-muted mb-3">
+                            Never find yourself stranded. Locate rapid DC and AC charging stations, petrol stations, diesel points, and CNG pumps in your vicinity with connector types, verified operational statuses, and turn-by-turn navigation.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> EV Fast Charger Locator</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Multi-Fuel Availability</span>
+                            <span class="badge bg-white text-dark border"><i class="fa-solid fa-check text-success me-1"></i> Geolocation Mapping</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a href="{% url 'core:contact' %}" class="btn btn-dark-navy">
+                            <i class="fa-solid fa-map-location-dot"></i> Locate Stations
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="section-padding bg-light text-center">
+    <div class="container">
+        <h2 class="fw-bold mb-3">Experience Seamless Automobile Care Today</h2>
+        <p class="text-muted mb-4 max-w-600 mx-auto">Get started in minutes. All core automobile management features are consolidated into AutoVia.</p>
+        <a href="{% url 'core:register' %}" class="btn btn-primary-autovia btn-lg px-4 py-2">
+            <i class="fa-solid fa-car"></i> Get Started with AutoVia
+        </a>
+    </div>
+</section>
+
+{% endblock %}

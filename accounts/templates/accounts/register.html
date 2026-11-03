@@ -1,0 +1,200 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Create Account | AutoVia – Automobile Management System{% endblock %}
+
+{% block content %}
+<section class="section-padding bg-light py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <!-- Top Gradient Header -->
+                    <div style="height: 6px; background: linear-gradient(90deg, var(--secondary-color), #FB923C);"></div>
+
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <div class="brand-icon mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.5rem;">
+                                <i class="fa-solid fa-car-side"></i>
+                            </div>
+                            <h3 class="fw-bold text-dark mb-1">Create Your AutoVia Account</h3>
+                            <p class="text-muted small">Select your role and connect to the integrated automobile network</p>
+                        </div>
+
+                        <!-- Registration Form -->
+                        <form method="POST" action="{% url 'accounts:register' %}" novalidate>
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger py-2 small mb-3">
+                                    {% for err in form.non_field_errors %}
+                                        <div><i class="fa-solid fa-circle-exclamation me-1"></i> {{ err }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="row g-3">
+                                <!-- Full Name -->
+                                <div class="col-md-6">
+                                    <label for="id_full_name" class="form-label small fw-semibold">
+                                        Full Name <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-id-card"></i>
+                                        </span>
+                                        {{ form.full_name }}
+                                    </div>
+                                    {% if form.full_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Username -->
+                                <div class="col-md-6">
+                                    <label for="id_username" class="form-label small fw-semibold">
+                                        Username <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-user"></i>
+                                        </span>
+                                        {{ form.username }}
+                                    </div>
+                                    {% if form.username.errors %}
+                                        <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Email -->
+                                <div class="col-md-6">
+                                    <label for="id_email" class="form-label small fw-semibold">
+                                        Email Address <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-envelope"></i>
+                                        </span>
+                                        {{ form.email }}
+                                    </div>
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Phone Number -->
+                                <div class="col-md-6">
+                                    <label for="id_phone_number" class="form-label small fw-semibold">
+                                        Phone Number <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-phone"></i>
+                                        </span>
+                                        {{ form.phone_number }}
+                                    </div>
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Account Type Selection -->
+                                <div class="col-12">
+                                    <label for="id_account_type" class="form-label small fw-semibold">
+                                        Account Type (Role) <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-briefcase"></i>
+                                        </span>
+                                        {{ form.account_type }}
+                                    </div>
+                                    <div class="form-text small text-muted">
+                                        Service providers (mechanics, workshops, and suppliers) are initiated with pending verification status.
+                                    </div>
+                                    {% if form.account_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.account_type.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Password -->
+                                <div class="col-md-6">
+                                    <label for="id_password" class="form-label small fw-semibold">
+                                        Password <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-lock"></i>
+                                        </span>
+                                        {{ form.password }}
+                                        <button class="btn btn-outline-secondary border-start-0 bg-white toggle-pwd-btn" type="button" data-target="id_password">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.password.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Confirm Password -->
+                                <div class="col-md-6">
+                                    <label for="id_confirm_password" class="form-label small fw-semibold">
+                                        Confirm Password <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted border-end-0">
+                                            <i class="fa-solid fa-lock-open"></i>
+                                        </span>
+                                        {{ form.confirm_password }}
+                                        <button class="btn btn-outline-secondary border-start-0 bg-white toggle-pwd-btn" type="button" data-target="id_confirm_password">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.confirm_password.errors %}
+                                        <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary-autovia w-100 py-2 fs-6">
+                                    <i class="fa-solid fa-user-plus me-1"></i> Register Account
+                                </button>
+                            </div>
+
+                            <!-- Login Redirect -->
+                            <div class="text-center pt-3 mt-3 border-top">
+                                <span class="text-muted small">Already have an account?</span>
+                                <a href="{% url 'accounts:login' %}" class="small fw-bold ms-1 text-decoration-none" style="color: var(--secondary-color);">
+                                    Sign In here
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.toggle-pwd-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                if (input && icon) {
+                    const isPwd = input.getAttribute('type') === 'password';
+                    input.setAttribute('type', isPwd ? 'text' : 'password');
+                    icon.classList.toggle('fa-eye', !isPwd);
+                    icon.classList.toggle('fa-eye-slash', isPwd);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

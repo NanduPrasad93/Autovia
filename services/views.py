@@ -3,8 +3,8 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from accounts.decorators import vehicle_owner_required
-from .models import ServiceRequest, RepairEstimate, ServiceRecord
-from .forms import ServiceRequestForm
+from .models import ServiceRequest, RepairEstimate, ServiceRecord, RepairBill, ServiceFeedback
+from .forms import ServiceRequestForm, ServiceFeedbackForm
 from vehicles.models import Vehicle
 from mechanics.models import MechanicProfile
 from workshops.models import Workshop
@@ -122,3 +122,49 @@ def service_record_detail(request, pk):
         'record': record,
         'page_title': f"Service Record #{record.id} | AutoVia",
     })
+
+
+@vehicle_owner_required
+def customer_bill_detail(request, pk):
+    """Allow customer to view and print their official repair bill."""
+    service_request = get_object_or_404(ServiceRequest, pk=pk, customer=request.user)
+    bill = get_object_or_404(RepairBill, service_request=service_request)
+    return render(request, 'services/repair_bill_detail.html', {
+        'bill': bill,
+        'service_request': service_request,
+        'page_title': f"Repair Bill #{bill.pk} | AutoVia",
+    })
+
+
+@vehicle_owner_required
+def submit_feedback(request, pk):
+    """Allow vehicle owners to review and rate completed services."""
+    service_request = get_object_or_404(
+        ServiceRequest,
+        pk=pk,
+        customer=request.user,
+        status=ServiceRequest.Status.COMPLETED
+    )
+    existing_feedback = getattr(service_request, 'feedback', None)
+
+    if request.method == 'POST':
+        form = ServiceFeedbackForm(request.POST, instance=existing_feedback)
+        if form.is_valid():
+            fb = form.save(commit=False)
+            fb.service_request = service_request
+            fb.customer = request.user
+            fb.mechanic = service_request.mechanic
+            fb.workshop = service_request.workshop
+            fb.save()
+            messages.success(request, "Thank you! Your review and feedback has been recorded.")
+            return redirect('services:request_detail', pk=service_request.pk)
+    else:
+        form = ServiceFeedbackForm(instance=existing_feedback)
+
+    return render(request, 'services/feedback_form.html', {
+        'form': form,
+        'service_request': service_request,
+        'existing_feedback': existing_feedback,
+        'page_title': f"Rate & Review Service #{service_request.pk} | AutoVia",
+    })
+

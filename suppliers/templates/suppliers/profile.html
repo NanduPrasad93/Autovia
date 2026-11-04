@@ -1,0 +1,183 @@
+{% extends "suppliers/supplier_base.html" %}
+
+{% block title %}Business Profile | AutoVia Supplier Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-store text-warning"></i> Business Profile
+            </h2>
+            <p class="text-muted mb-0 small">
+                Manage your enterprise identity, trade address, and contact details visible to customers and system administrators.
+            </p>
+        </div>
+        <a href="{% url 'suppliers:verification' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+            <i class="fa-solid fa-shield-halved"></i> Verification Status
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profile Form Card -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Supplier Organization Details</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mb-4">
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3 mb-3">
+                            <!-- Business Name -->
+                            <div class="col-md-12">
+                                <label for="{{ form.business_name.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Business / Company Name <span class="text-danger">*</span>
+                                </label>
+                                {{ form.business_name }}
+                                {% if form.business_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.business_name.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Official trade name of your automobile spare parts dealership or warehouse.</div>
+                            </div>
+
+                            <!-- Contact Email -->
+                            <div class="col-md-6">
+                                <label for="{{ form.contact_email.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Corporate Contact Email <span class="text-danger">*</span>
+                                </label>
+                                {{ form.contact_email }}
+                                {% if form.contact_email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.contact_email.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Used for receiving order notifications and admin communications.</div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="col-md-6">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Primary Phone / Hotline <span class="text-danger">*</span>
+                                </label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.phone_number.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Direct logistics phone line for customer order inquiries.</div>
+                            </div>
+
+                            <!-- Business Address -->
+                            <div class="col-12">
+                                <label for="{{ form.business_address.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Warehouse / Distribution Hub Address <span class="text-danger">*</span>
+                                </label>
+                                {{ form.business_address }}
+                                {% if form.business_address.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.business_address.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Physical location where spare parts are dispatched and returns received.</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Supplier Overview & Specializations
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.description.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Outline the automobile categories, OEM certifications, or brands you specialize in.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="{% url 'suppliers:dashboard' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-warning text-dark fw-semibold px-4 shadow-sm">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Profile Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification & Account Overview Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Accreditation Status</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        {% if supplier.is_approved %}
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px;">
+                                <i class="fa-solid fa-circle-check fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold text-success mb-1">Approved & Verified</h5>
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-3 py-1">
+                                Full Catalog Privileges
+                            </span>
+                        {% elif supplier.verification_status == 'REJECTED' %}
+                            <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px;">
+                                <i class="fa-solid fa-circle-xmark fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold text-danger mb-1">Application Rejected</h5>
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-3 py-1">
+                                Privileges Restricted
+                            </span>
+                        {% else %}
+                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px;">
+                                <i class="fa-solid fa-clock fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold text-warning mb-1">Verification Pending</h5>
+                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-3 py-1">
+                                Review in Progress
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-light border small text-muted mb-3">
+                        <i class="fa-solid fa-shield-halved text-primary me-1"></i>
+                        Verification status is exclusively administered by AutoVia platform administrators to safeguard vehicle owners from counterfeit spare parts. Suppliers cannot modify accreditation status directly.
+                    </div>
+
+                    <div class="list-group list-group-flush small">
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">User ID:</span>
+                            <span class="font-monospace fw-semibold">{{ request.user.username }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Catalog Listed SKUs:</span>
+                            <span class="fw-semibold">{{ supplier.spare_parts.count }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Account Registered:</span>
+                            <span>{{ supplier.created_at|date:"M d, Y"|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

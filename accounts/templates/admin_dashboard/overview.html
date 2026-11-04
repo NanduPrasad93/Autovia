@@ -1,0 +1,452 @@
+{% extends "admin_dashboard/admin_base.html" %}
+
+{% block title %}Overview | AutoVia Administration Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Top Greeting & Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <span>System Administration Overview</span>
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                    <i class="fa-solid fa-server me-1"></i> Live Production Monitor
+                </span>
+            </h2>
+            <p class="text-muted mb-0 small">
+                Enterprise control console monitoring real database statistics, provider accreditation queues, and service requests.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'admin_dashboard:users' %}" class="btn btn-outline-dark btn-sm fw-medium d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-users"></i> Users Directory
+            </a>
+            <a href="{% url 'admin_dashboard:complaints' %}" class="btn btn-outline-danger btn-sm fw-medium d-inline-flex align-items-center gap-2 position-relative">
+                <i class="fa-solid fa-triangle-exclamation"></i> Complaints
+                {% if open_complaints > 0 %}
+                    <span class="badge rounded-pill bg-danger">{{ open_complaints }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'admin_dashboard:activities' %}" class="btn btn-warning text-dark btn-sm fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-clock-rotate-left"></i> Audit Log
+            </a>
+        </div>
+    </div>
+
+    <!-- Urgent Action Banner if verifications or complaints pending -->
+    {% if total_pending_verifications > 0 or open_complaints > 0 %}
+        <div class="alert alert-warning border-warning border-opacity-25 shadow-sm rounded-4 mb-4 p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning bg-opacity-25 text-warning p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-bell fs-4 text-warning"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-1 text-dark">Action Required: Pending Platform Reviews</h6>
+                    <p class="text-secondary small mb-0">
+                        There are <strong>{{ total_pending_verifications }}</strong> provider applications awaiting verification
+                        {% if open_complaints > 0 %}
+                            and <strong>{{ open_complaints }}</strong> open customer complaint{{ open_complaints|pluralize }} needing resolution
+                        {% endif %}.
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                {% if pending_mechanic_verifications > 0 %}
+                    <a href="{% url 'admin_dashboard:mechanics' %}?status=PENDING" class="btn btn-sm btn-dark text-nowrap">
+                        Mechanics ({{ pending_mechanic_verifications }})
+                    </a>
+                {% endif %}
+                {% if pending_workshop_approvals > 0 %}
+                    <a href="{% url 'admin_dashboard:workshops' %}?status=PENDING" class="btn btn-sm btn-dark text-nowrap">
+                        Workshops ({{ pending_workshop_approvals }})
+                    </a>
+                {% endif %}
+                {% if pending_supplier_verifications > 0 %}
+                    <a href="{% url 'admin_dashboard:suppliers' %}?status=PENDING" class="btn btn-sm btn-dark text-nowrap">
+                        Suppliers ({{ pending_supplier_verifications }})
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 8 Real Database KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Registered Users -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Users</span>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_users }}</div>
+                <div class="small text-success fw-medium">
+                    <i class="fa-solid fa-circle-check me-1"></i> {{ active_users }} active accounts
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Vehicle Owners -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Vehicle Owners</span>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fa-solid fa-car"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_vehicle_owners }}</div>
+                <div class="small text-muted">Registered motorists</div>
+            </div>
+        </div>
+
+        <!-- 3. Mechanics & Pending -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Mechanics</span>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_mechanics }}</div>
+                <div class="small {% if pending_mechanic_verifications > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                    {% if pending_mechanic_verifications > 0 %}
+                        <i class="fa-solid fa-clock me-1"></i> {{ pending_mechanic_verifications }} pending review
+                    {% else %}
+                        All verified
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Workshops & Pending -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Workshops</span>
+                    <div class="stat-icon bg-purple bg-opacity-10 text-primary" style="background-color: rgba(99, 102, 241, 0.1) !important; color: #6366F1 !important;">
+                        <i class="fa-solid fa-building-circle-check"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_workshops }}</div>
+                <div class="small {% if pending_workshop_approvals > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                    {% if pending_workshop_approvals > 0 %}
+                        <i class="fa-solid fa-clock me-1"></i> {{ pending_workshop_approvals }} pending review
+                    {% else %}
+                        All verified
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Suppliers & Pending -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Parts Suppliers</span>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_suppliers }}</div>
+                <div class="small {% if pending_supplier_verifications > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                    {% if pending_supplier_verifications > 0 %}
+                        <i class="fa-solid fa-clock me-1"></i> {{ pending_supplier_verifications }} pending review
+                    {% else %}
+                        All verified
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Total Service Requests -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Service Requests</span>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_service_requests }}</div>
+                <div class="small text-muted">{{ active_service_requests }} in progress</div>
+            </div>
+        </div>
+
+        <!-- 7. Open Complaints -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card {% if open_complaints > 0 %}border-danger border-opacity-50{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Open Complaints</span>
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold {% if open_complaints > 0 %}text-danger{% else %}text-dark{% endif %} mb-1">
+                    {{ open_complaints }}
+                </div>
+                <div class="small {% if open_complaints > 0 %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+                    {{ total_complaints }} total lifetime
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Verification Backlog -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card {% if total_pending_verifications > 0 %}border-warning border-opacity-50{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Verification Queue</span>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold {% if total_pending_verifications > 0 %}text-warning{% else %}text-dark{% endif %} mb-1">
+                    {{ total_pending_verifications }}
+                </div>
+                <div class="small {% if total_pending_verifications > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                    Providers awaiting audit
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Analytics Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- User Role Breakdown Doughnut Chart -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Platform Users Distribution</h5>
+                    <span class="badge bg-light text-dark border">By Role</span>
+                </div>
+                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center">
+                    <div style="height: 250px; width: 100%; position: relative;">
+                        <canvas id="userRolesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Service Requests Bar Chart -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Monthly Service Requests Trend</h5>
+                    <span class="badge bg-light text-dark border">Past 6 Months</span>
+                </div>
+                <div class="card-body p-4">
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="serviceRequestsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: Pending Provider Applications & Platform Audit Feed -->
+    <div class="row g-4">
+        <!-- Pending Verification Applications -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-hourglass-half text-warning"></i> Pending Accreditation Queue
+                    </h5>
+                    <span class="badge bg-warning bg-opacity-25 text-dark">{{ total_pending_verifications }} pending</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if total_pending_verifications > 0 %}
+                        <div class="list-group list-group-flush">
+                            <!-- Pending Mechanics -->
+                            {% for m in pending_mechanics_sample %}
+                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fa-solid fa-wrench"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ m.user.get_full_name|default:m.user.username }}</div>
+                                            <small class="text-muted d-block">Mechanic &bull; {{ m.specialization }} ({{ m.experience_years }} yrs exp)</small>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'admin_dashboard:mechanic_detail' m.pk %}" class="btn btn-sm btn-outline-dark">
+                                        Review <i class="fa-solid fa-arrow-right small ms-1"></i>
+                                    </a>
+                                </div>
+                            {% endfor %}
+
+                            <!-- Pending Workshops -->
+                            {% for w in pending_workshops_sample %}
+                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-purple bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: rgba(99, 102, 241, 0.1) !important; color: #6366F1 !important;">
+                                            <i class="fa-solid fa-building-circle-check"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ w.workshop_name }}</div>
+                                            <small class="text-muted d-block">Workshop &bull; Owner: {{ w.owner.username }}</small>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'admin_dashboard:workshop_detail' w.pk %}" class="btn btn-sm btn-outline-dark">
+                                        Review <i class="fa-solid fa-arrow-right small ms-1"></i>
+                                    </a>
+                                </div>
+                            {% endfor %}
+
+                            <!-- Pending Suppliers -->
+                            {% for s in pending_suppliers_sample %}
+                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fa-solid fa-boxes-packing"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ s.business_name }}</div>
+                                            <small class="text-muted d-block">Supplier &bull; {{ s.phone_number }}</small>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'admin_dashboard:supplier_detail' s.pk %}" class="btn btn-sm btn-outline-dark">
+                                        Review <i class="fa-solid fa-arrow-right small ms-1"></i>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="fa-solid fa-circle-check fs-3"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">Accreditation Queue Clear</h6>
+                            <p class="text-muted small mb-0">All registered mechanics, workshops, and suppliers have been processed.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Platform Activities Feed -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-primary"></i> Recent Platform Activities
+                    </h5>
+                    <a href="{% url 'admin_dashboard:activities' %}" class="btn btn-sm btn-outline-secondary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_activities %}
+                        <div class="list-group list-group-flush">
+                            {% for act in recent_activities %}
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="badge bg-light text-dark border small font-monospace">
+                                            {{ act.get_action_type_display }}
+                                        </span>
+                                        <small class="text-muted">{{ act.created_at|date:"M d, H:i" }}</small>
+                                    </div>
+                                    <div class="small text-dark mb-1">{{ act.description }}</div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted">
+                                            <i class="fa-solid fa-user-shield me-1"></i>
+                                            Actor: <strong>{{ act.user.username|default:"System" }}</strong>
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-muted small mb-0">No platform activities logged yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Roles Doughnut Chart
+        const roleLabels = {{ role_labels_json|safe }};
+        const roleCounts = {{ role_counts_json|safe }};
+        const ctxRoles = document.getElementById('userRolesChart');
+        if (ctxRoles) {
+            new Chart(ctxRoles, {
+                type: 'doughnut',
+                data: {
+                    labels: roleLabels,
+                    datasets: [{
+                        data: roleCounts,
+                        backgroundColor: [
+                            '#0EA5E9', // Vehicle Owners (Info)
+                            '#F59E0B', // Mechanics (Warning)
+                            '#6366F1', // Workshops (Indigo)
+                            '#10B981', // Suppliers (Green)
+                            '#EF4444', // Administrators (Red)
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { family: 'Inter', size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Monthly Service Requests Bar Chart
+        const monthlyLabels = {{ monthly_labels_json|safe }};
+        const monthlyData = {{ monthly_requests_json|safe }};
+        const ctxRequests = document.getElementById('serviceRequestsChart');
+        if (ctxRequests) {
+            new Chart(ctxRequests, {
+                type: 'bar',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Service Requests',
+                        data: monthlyData,
+                        backgroundColor: 'rgba(249, 115, 22, 0.85)',
+                        borderColor: '#F97316',
+                        borderRadius: 6,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

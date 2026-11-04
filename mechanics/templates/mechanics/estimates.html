@@ -1,0 +1,76 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Repair Estimates | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Repair Cost Estimates</h2>
+            <p class="text-muted small mb-0">Track all formal estimates and pricing quotes issued to vehicle owners.</p>
+        </div>
+        <div>
+            <a href="{% url 'mechanics:incoming_requests' %}" class="btn btn-sm btn-primary rounded-3 px-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                <i class="fa-solid fa-plus me-1"></i> New Request / Quote
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        {% if estimates %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="small text-muted text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                            <th>Estimate ID</th>
+                            <th>Vehicle</th>
+                            <th>Customer</th>
+                            <th>Labor</th>
+                            <th>Parts</th>
+                            <th>Additional</th>
+                            <th>Total Cost</th>
+                            <th>Target Date</th>
+                            <th>Created</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for est in estimates %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold text-dark font-monospace">#EST-{{ est.pk }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ est.service_request.vehicle.manufacturer }} {{ est.service_request.vehicle.model_name }}</div>
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.72rem;">{{ est.service_request.vehicle.registration_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark small">{{ est.service_request.customer.get_full_name|default:est.service_request.customer.username }}</div>
+                                    <small class="text-muted">{{ est.service_request.customer.email }}</small>
+                                </td>
+                                <td>${{ est.labor_cost|floatformat:2 }}</td>
+                                <td>${{ est.parts_cost|floatformat:2 }}</td>
+                                <td>${{ est.additional_cost|floatformat:2 }}</td>
+                                <td class="fw-bold text-dark">${{ est.total_cost|floatformat:2 }}</td>
+                                <td class="small">{{ est.estimated_completion_date|default:"TBD" }}</td>
+                                <td class="small text-muted">{{ est.created_at|date:"M d, Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'mechanics:request_detail' est.service_request.pk %}" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                                        View Ticket
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted small">
+                <i class="fa-solid fa-calculator fs-1 text-secondary opacity-50 mb-2"></i>
+                <h5 class="fw-bold text-dark mt-2 mb-1">No Estimates Authored Yet</h5>
+                <p class="mb-0">You have not prepared any repair estimates. Accept an incoming service ticket to generate a quote.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

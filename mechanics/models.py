@@ -20,6 +20,7 @@ class MechanicProfile(models.Model):
         default=VerificationStatus.PENDING,
         db_index=True,
     )
+    rejection_reason = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -30,3 +31,8 @@ class MechanicProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} - {self.specialization} ({self.get_verification_status_display()})"
+
+    @property
+    def is_verified(self):
+        return self.verification_status == self.VerificationStatus.VERIFIED
+

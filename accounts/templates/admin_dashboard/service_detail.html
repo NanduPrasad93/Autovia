@@ -1,0 +1,372 @@
+{% extends "admin_dashboard/admin_base.html" %}
+
+{% block title %}Monitor Service #{{ service.pk }} | AutoVia Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Breadcrumb & Back -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:services' %}" class="text-decoration-none">Service Requests</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Ticket #{{ service.pk }}</li>
+                </ol>
+            </nav>
+            <h2 class="h3 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-clipboard-list text-primary"></i> Service Ticket #{{ service.pk }}
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard:services' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Monitor
+            </a>
+        </div>
+    </div>
+
+    <!-- Overdue Alert -->
+    {% if is_overdue %}
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center gap-3 p-3">
+            <div class="fs-3 text-danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div>
+                <h6 class="fw-bold mb-1">Service SLA Alert: Ticket is Overdue</h6>
+                <p class="mb-0 small">The scheduled appointment was <strong>{{ service.requested_date|date:"F j, Y, g:i a" }}</strong>, but the ticket is still in <strong>{{ service.get_status_display }}</strong> status.</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Left Column: Core Ticket Details, Estimates, Billing, Feedback -->
+        <div class="col-lg-7">
+            <!-- Ticket Summary -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Ticket Overview</h5>
+                    <span class="badge {% if service.status == 'COMPLETED' %}bg-success{% elif service.status == 'IN_PROGRESS' %}bg-primary{% elif service.status == 'ACCEPTED' %}bg-info text-dark{% elif service.status == 'REJECTED' or service.status == 'CANCELLED' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
+                        {{ service.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Scheduled Appointment Date</span>
+                            <span class="fw-semibold text-dark">
+                                <i class="fa-regular fa-calendar-check me-1 text-primary"></i> {{ service.requested_date|date:"F j, Y, g:i a" }}
+                            </span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Ticket Created At</span>
+                            <span class="text-dark">{{ service.created_at|date:"M d, Y H:i" }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Last Modified</span>
+                            <span class="text-dark">{{ service.updated_at|date:"M d, Y H:i" }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Provider Category</span>
+                            {% if service.mechanic %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">Individual Mechanic</span>
+                            {% elif service.workshop %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">Workshop / Service Centre</span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border px-2 py-1">Unassigned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-muted small d-block mb-1 fw-semibold">Problem / Maintenance Description:</span>
+                        <div class="p-3 bg-light rounded-3 text-secondary lh-base">
+                            {{ service.problem_description|linebreaksbr }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repair Estimates -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-primary"></i> Cost Estimates ({{ estimates.count }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if estimates %}
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Quoted By</th>
+                                        <th>Labor</th>
+                                        <th>Parts</th>
+                                        <th>Additional</th>
+                                        <th>Total Estimate</th>
+                                        <th class="pe-4">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for est in estimates %}
+                                        <tr>
+                                            <td class="ps-4 fw-medium text-dark">
+                                                {{ est.provider.get_full_name|default:est.provider.username }}
+                                            </td>
+                                            <td>${{ est.labor_cost }}</td>
+                                            <td>${{ est.parts_cost }}</td>
+                                            <td>${{ est.additional_cost }}</td>
+                                            <td class="fw-bold text-success">${{ est.total_cost }}</td>
+                                            <td class="pe-4 small text-muted">{{ est.created_at|date:"M d, Y" }}</td>
+                                        </tr>
+                                        {% if est.description %}
+                                            <tr class="bg-light">
+                                                <td colspan="6" class="ps-4 pe-4 py-2 small text-secondary">
+                                                    <em>Note: {{ est.description }}</em>
+                                                    {% if est.estimated_completion_date %}
+                                                        <span class="ms-2">| Estimated Completion: {{ est.estimated_completion_date|date:"M d, Y" }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fa-regular fa-file-lines fa-2x mb-2 text-secondary opacity-50"></i>
+                            <p class="mb-0 small">No cost estimates submitted for this ticket yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Invoice / Repair Bill -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-receipt text-primary"></i> Final Repair Bill
+                    </h5>
+                    {% if bill %}
+                        <span class="badge {% if bill.is_paid %}bg-success{% else %}bg-warning text-dark{% endif %} px-3 py-1 rounded-pill">
+                            {% if bill.is_paid %}PAID{% else %}PAYMENT PENDING{% endif %}
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    {% if bill %}
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Invoice Reference</span>
+                                <span class="fw-bold font-monospace text-dark">#BILL-{{ bill.pk }}</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Payment Method</span>
+                                <span class="fw-semibold text-dark">{{ bill.get_payment_method_display }}</span>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="text-muted small d-block">Labor Charges</span>
+                                <span class="fw-medium">${{ bill.labor_charges }}</span>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="text-muted small d-block">Parts Charges</span>
+                                <span class="fw-medium">${{ bill.parts_charges }}</span>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="text-muted small d-block">Additional Charges</span>
+                                <span class="fw-medium">${{ bill.additional_charges }}</span>
+                            </div>
+                            <div class="col-12 border-top pt-3 mt-3 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark fs-5">Total Billed Amount:</span>
+                                <span class="fw-bold text-success fs-4">${{ bill.total_amount }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fa-solid fa-receipt fa-2x mb-2 text-secondary opacity-50"></i>
+                            <p class="mb-0 small">No final repair bill has been generated yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Feedback -->
+            {% if feedback %}
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                        <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-star text-warning"></i> Customer Service Rating
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="text-warning fs-5">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= feedback.rating %}
+                                        <i class="fa-solid fa-star"></i>
+                                    {% else %}
+                                        <i class="fa-regular fa-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="fw-bold text-dark fs-6">{{ feedback.rating }} out of 5</span>
+                        </div>
+                        {% if feedback.comment %}
+                            <blockquote class="blockquote mb-0 bg-light p-3 rounded-3 fs-6 fst-italic text-secondary">
+                                "{{ feedback.comment }}"
+                            </blockquote>
+                        {% endif %}
+                        <div class="mt-2 text-muted small">Submitted on {{ feedback.created_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Customer, Vehicle, Provider, Complaints -->
+        <div class="col-lg-5">
+            <!-- Customer Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Customer Info</h5>
+                    <a href="{% url 'admin_dashboard:user_detail' service.customer.pk %}" class="btn btn-outline-dark btn-sm rounded-pill">
+                        Inspect Profile
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                            {{ service.customer.first_name|first|default:service.customer.username|first|upper }}
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">{{ service.customer.get_full_name|default:service.customer.username }}</h6>
+                            <span class="text-muted small">@{{ service.customer.username }}</span>
+                        </div>
+                    </div>
+                    <div class="small">
+                        <div class="mb-2"><i class="fa-regular fa-envelope me-2 text-muted"></i> {{ service.customer.email }}</div>
+                        {% if service.customer.profile.phone_number %}
+                            <div><i class="fa-solid fa-phone me-2 text-muted"></i> {{ service.customer.profile.phone_number }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-car text-primary"></i> Registered Vehicle
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">{{ service.vehicle.manufacturer }} {{ service.vehicle.model_name }}</h5>
+                            <span class="badge bg-light text-dark border font-monospace mt-1 px-2 py-1">
+                                {{ service.vehicle.registration_number }}
+                            </span>
+                        </div>
+                        <span class="badge bg-secondary px-2 py-1">{{ service.vehicle.manufacturing_year }}</span>
+                    </div>
+                    <div class="row g-2 small text-muted">
+                        <div class="col-6">Fuel: <strong class="text-dark">{{ service.vehicle.get_fuel_type_display|default:service.vehicle.fuel_type }}</strong></div>
+                        <div class="col-6">Color: <strong class="text-dark">{{ service.vehicle.color }}</strong></div>
+                        {% if service.vehicle.current_odometer %}
+                            <div class="col-12 mt-2">Current Odometer: <strong class="text-dark">{{ service.vehicle.current_odometer }} km</strong></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assigned Provider Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-user-gear text-primary"></i> Assigned Service Provider
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if service.mechanic %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar bg-info text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 44px; height: 44px;">
+                                <i class="fa-solid fa-wrench"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">
+                                    {{ service.mechanic.user.get_full_name|default:service.mechanic.user.username }}
+                                </h6>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle small">Specialist Mechanic</span>
+                            </div>
+                        </div>
+                        <div class="small mb-3">
+                            <div class="text-muted mb-1">Specialization: <strong class="text-dark">{{ service.mechanic.specialization }}</strong></div>
+                            <div class="text-muted mb-1">Experience: <strong class="text-dark">{{ service.mechanic.experience_years }} years</strong></div>
+                            <div class="text-muted">Location: <strong class="text-dark">{{ service.mechanic.service_location }}</strong></div>
+                        </div>
+                        <a href="{% url 'admin_dashboard:mechanic_detail' service.mechanic.pk %}" class="btn btn-outline-dark btn-sm w-100 rounded-pill">
+                            Audit Mechanic Application
+                        </a>
+                    {% elif service.workshop %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 44px; height: 44px;">
+                                <i class="fa-solid fa-warehouse"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ service.workshop.workshop_name }}</h6>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">Workshop / Centre</span>
+                            </div>
+                        </div>
+                        <div class="small mb-3">
+                            <div class="text-muted mb-1">Owner: <strong class="text-dark">{{ service.workshop.owner.get_full_name|default:service.workshop.owner.username }}</strong></div>
+                            <div class="text-muted mb-1">Address: <strong class="text-dark">{{ service.workshop.address }}</strong></div>
+                            {% if service.workshop.phone_number %}
+                                <div class="text-muted">Contact: <strong class="text-dark">{{ service.workshop.phone_number }}</strong></div>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'admin_dashboard:workshop_detail' service.workshop.pk %}" class="btn btn-outline-dark btn-sm w-100 rounded-pill">
+                            Audit Workshop Facility
+                        </a>
+                    {% else %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fa-solid fa-user-clock fa-2x mb-2 text-secondary opacity-50"></i>
+                            <p class="mb-0 small">No mechanic or workshop has been assigned to this ticket.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Linked Complaints -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-warning"></i> Customer Grievances ({{ complaints.count }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if complaints %}
+                        <ul class="list-group list-group-flush">
+                            {% for c in complaints %}
+                                <li class="list-group-item p-3 border-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <a href="{% url 'admin_dashboard:complaint_detail' c.pk %}" class="fw-bold text-dark text-decoration-none">
+                                            #{{ c.pk }}: {{ c.subject }}
+                                        </a>
+                                        <span class="badge {% if c.status == 'OPEN' %}bg-warning text-dark{% elif c.status == 'IN_PROGRESS' %}bg-info text-dark{% elif c.status == 'RESOLVED' %}bg-success{% elif c.status == 'REJECTED' %}bg-secondary{% else %}bg-dark{% endif %} rounded-pill">
+                                            {{ c.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-1">{{ c.description|truncatechars:80 }}</p>
+                                    <span class="text-muted small" style="font-size: 0.75rem;">Filed {{ c.created_at|date:"M d, Y" }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="p-3 text-center text-muted small">
+                            No complaints filed against this service request.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Invoice #INV-{{ bill.pk }} | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <!-- Header with Print Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Official Repair Invoice #INV-{{ bill.pk }}</h2>
+            <p class="text-muted small mb-0">Issued on {{ bill.service_date|date:"F d, Y" }} for Service Ticket #{{ bill.service_request.pk }}.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-dark btn-sm rounded-3">
+                <i class="fa-solid fa-print me-1"></i> Print Invoice
+            </button>
+            <a href="{% url 'mechanics:bill_list' %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-arrow-left me-1"></i> Invoices List
+            </a>
+        </div>
+    </div>
+
+    <!-- Printable Invoice Sheet -->
+    <div class="card border-0 shadow-sm rounded-4 p-5 bg-white mx-auto" style="max-width: 850px;">
+        <!-- Invoice Header -->
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="brand-icon" style="width: 36px; height: 36px; font-size: 1.1rem; background-color: var(--primary-color); color: #fff; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-wrench"></i></span>
+                    <span class="fs-4 fw-bold" style="color: var(--primary-color);">Auto<span style="color: var(--secondary-color);">Via</span></span>
+                </div>
+                <div class="small text-muted">Integrated Automobile Assistance Network</div>
+                <div class="small text-muted">Verified Technician Services</div>
+            </div>
+            <div class="text-end">
+                <h4 class="fw-bold text-dark mb-1">REPAIR INVOICE</h4>
+                <div class="font-monospace text-muted small">INVOICE: #INV-{{ bill.pk }}</div>
+                <div class="small text-muted">DATE: {{ bill.service_date|date:"M d, Y" }}</div>
+                <div class="mt-2">
+                    {% if bill.is_paid %}
+                        <span class="badge bg-success px-3 py-1 font-monospace">PAID IN FULL</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark px-3 py-1 font-monospace">PAYMENT PENDING</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Provider and Customer Coordinates -->
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6">
+                <span class="small text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Service Provider:</span>
+                <div class="fw-bold text-dark fs-6">{{ bill.provider.get_full_name|default:bill.provider.username }}</div>
+                <div class="small text-muted">{{ bill.provider.mechanic_profile.specialization }}</div>
+                <div class="small text-muted">{{ bill.provider.mechanic_profile.service_location }}</div>
+                <div class="small text-muted">{{ bill.provider.email }}</div>
+            </div>
+
+            <div class="col-sm-6 text-sm-end">
+                <span class="small text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Billed To (Customer):</span>
+                <div class="fw-bold text-dark fs-6">{{ bill.customer.get_full_name|default:bill.customer.username }}</div>
+                <div class="small text-muted">{{ bill.customer.email }}</div>
+                <div class="small text-muted">{{ bill.customer.profile.phone_number|default:"No phone on file" }}</div>
+                <div class="small text-muted">{{ bill.customer.profile.address|default:"AutoVia Member" }}</div>
+            </div>
+        </div>
+
+        <!-- Vehicle Details Box -->
+        <div class="p-3 rounded-3 bg-light border border-light-subtle mb-4">
+            <span class="small text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Vehicle Serviced:</span>
+            <div class="row g-2 small">
+                <div class="col-sm-4">
+                    <span class="text-muted">Make & Model:</span>
+                    <strong class="text-dark d-block">{{ bill.vehicle.manufacturer }} {{ bill.vehicle.model_name }} ({{ bill.vehicle.manufacturing_year }})</strong>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-muted">Registration Number:</span>
+                    <strong class="text-dark font-monospace d-block">{{ bill.vehicle.registration_number }}</strong>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-muted">Service Odometer:</span>
+                    <strong class="text-dark d-block">{{ bill.vehicle.current_odometer|default:"0" }} km</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Summary -->
+        <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2">Scope of Work & Repairs Completed:</h6>
+            <div class="p-3 rounded-3 bg-light text-dark small">
+                {{ bill.service_description|linebreaks }}
+            </div>
+        </div>
+
+        <!-- Itemized Charges Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr class="small text-muted text-uppercase" style="font-size: 0.72rem;">
+                        <th>Description of Charges</th>
+                        <th class="text-end" style="width: 160px;">Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    <tr>
+                        <td>
+                            <strong>Certified Labor & Diagnostic Service</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">Mechanical repair, calibration, component inspection and testing</div>
+                        </td>
+                        <td class="text-end fw-semibold">${{ bill.labor_charges|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Replacement Parts & Fluids</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">Fitted automotive spares, lubricants, and consumable components</div>
+                        </td>
+                        <td class="text-end fw-semibold">${{ bill.parts_charges|floatformat:2 }}</td>
+                    </tr>
+                    {% if bill.additional_charges > 0 %}
+                        <tr>
+                            <td>
+                                <strong>Ancillary & Diagnostic Fees</strong>
+                                <div class="text-muted" style="font-size: 0.75rem;">Shop supplies, specialized OBD scanning, environmental recycling</div>
+                            </td>
+                            <td class="text-end fw-semibold">${{ bill.additional_charges|floatformat:2 }}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fs-6">
+                        <td class="text-end fw-bold">TOTAL INVOICE AMOUNT:</td>
+                        <td class="text-end fw-bold text-primary fs-5" style="color: var(--primary-color) !important;">
+                            ${{ bill.total_amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Payment Settlement & Terms -->
+        <div class="border-top pt-3 d-flex justify-content-between align-items-center text-muted small">
+            <div>
+                <div><strong>Payment Method:</strong> {{ bill.get_payment_method_display }}</div>
+                <div>All repairs are backed by AutoVia verified technician workmanship standards.</div>
+            </div>
+            <div class="text-end font-monospace small">
+                THANK YOU FOR YOUR BUSINESS
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print, header, aside, .offcanvas {
+        display: none !important;
+    }
+    .dashboard-main {
+        max-width: 100% !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    body {
+        background: #fff !important;
+    }
+}
+</style>
+{% endblock %}

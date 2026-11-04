@@ -1,92 +1,558 @@
-{% extends 'accounts/dashboards/dashboard_base.html' %}
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
 
-{% block sidebar_title %}Vehicle Owner Menu{% endblock %}
+{% block title %}Dashboard | AutoVia Automobile Console{% endblock %}
 
-{% block sidebar_links %}
-<li class="nav-item">
-    <a class="nav-link active rounded-3 px-3 py-2 text-dark fw-semibold bg-light" href="#">
-        <i class="fa-solid fa-gauge-high text-warning me-2"></i> Overview
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
-        <i class="fa-solid fa-car text-primary me-2"></i> My Vehicles
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
-        <i class="fa-solid fa-screwdriver-wrench text-info me-2"></i> Service Requests
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
-        <i class="fa-solid fa-receipt text-success me-2"></i> Expense Tracker
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
-        <i class="fa-solid fa-box text-warning me-2"></i> Spare Part Orders
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link rounded-3 px-3 py-2 text-muted" href="#">
-        <i class="fa-solid fa-circle-exclamation text-danger me-2"></i> Complaints & Help
-    </a>
-</li>
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <!-- Welcome Header & Quick Action Row -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">
+                Welcome back, {{ request.user.first_name|default:request.user.username }}! 👋
+            </h2>
+            <p class="text-muted small mb-0">Here is a real-time summary of your vehicle garage, pending maintenance, and expenses.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'vehicles:add' %}" class="btn btn-sm btn-outline-primary rounded-3 px-3">
+                <i class="fa-solid fa-plus me-1"></i> Add Vehicle
+            </a>
+            <a href="{% url 'services:request_create' %}" class="btn btn-sm btn-primary rounded-3 px-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                <i class="fa-solid fa-wrench me-1"></i> Request Service
+            </a>
+            <a href="{% url 'expenses:add' %}" class="btn btn-sm btn-outline-success rounded-3 px-3">
+                <i class="fa-solid fa-receipt me-1"></i> Log Expense
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 Key Metric Stat Cards -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Registered Vehicles -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="small text-muted fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Registered Vehicles</span>
+                    <div class="stat-icon" style="background-color: rgba(16, 27, 45, 0.1); color: var(--primary-color);">
+                        <i class="fa-solid fa-car"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ total_vehicles }}</h3>
+                <div class="d-flex align-items-center justify-content-between">
+                    <small class="text-muted">Total in your garage</small>
+                    <a href="{% url 'vehicles:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View Fleet <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Pending Service Requests -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="small text-muted fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Pending Requests</span>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ pending_requests_count }}</h3>
+                <div class="d-flex align-items-center justify-content-between">
+                    <small class="text-muted">Awaiting workshop review</small>
+                    <a href="{% url 'services:request_list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        Track Requests <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Completed Services -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="small text-muted fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Completed Services</span>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ completed_services_count }}</h3>
+                <div class="d-flex align-items-center justify-content-between">
+                    <small class="text-muted">Verified repairs on file</small>
+                    <a href="{% url 'services:history_list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View History <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Total Expenses -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="small text-muted fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Total Expenses</span>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">${{ total_expenses|floatformat:2 }}</h3>
+                <div class="d-flex align-items-center justify-content-between">
+                    <small class="text-muted">Cumulative spend</small>
+                    <a href="{% url 'expenses:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        Expenses <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Reminders & Quick Links Banner -->
+    {% if maintenance_reminders %}
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Vehicle Maintenance Alerts & Reminders
+                </h5>
+                <span class="badge bg-warning text-dark">{{ maintenance_reminders|length }} Notice(s)</span>
+            </div>
+            <div class="row g-3">
+                {% for reminder in maintenance_reminders %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="p-3 rounded-3 border h-100 d-flex flex-column justify-content-between {% if reminder.level == 'warning' %}bg-warning bg-opacity-10 border-warning border-opacity-25{% else %}bg-light border-light-subtle{% endif %}">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="fw-bold text-dark small">{{ reminder.title }}</span>
+                                    <span class="badge bg-secondary text-white font-monospace" style="font-size: 0.68rem;">{{ reminder.vehicle.registration_number }}</span>
+                                </div>
+                                <p class="text-muted small mb-3">{{ reminder.message }}</p>
+                            </div>
+                            <div>
+                                <a href="{{ reminder.action_url }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 w-100 fw-semibold">
+                                    <i class="fa-solid fa-calendar-plus me-1"></i> Book Service Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Chart Visualizations -->
+    <div class="row g-4 mb-4">
+        <!-- Monthly Spending Trend -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">Monthly Spending Trend</h5>
+                        <p class="text-muted small mb-0">Vehicle maintenance, fuel, and parts expenditure over the last 6 months</p>
+                    </div>
+                    <span class="badge bg-light text-dark border">Past 6 Months</span>
+                </div>
+                <div style="height: 260px; position: relative;">
+                    <canvas id="monthlySpendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense Category Breakdown -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">Cost by Category</h5>
+                        <p class="text-muted small mb-0">Breakdown of recorded expenses</p>
+                    </div>
+                </div>
+                <div style="height: 220px; position: relative;" class="d-flex align-items-center justify-content-center">
+                    <canvas id="categoryBreakdownChart"></canvas>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="{% url 'expenses:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        Manage & Log Expenses <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicles & Quick Navigation Overview -->
+    <div class="row g-4 mb-4">
+        <!-- Fleet Summary Card -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-car text-primary me-2"></i> My Registered Vehicles
+                    </h5>
+                    <a href="{% url 'vehicles:list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        View All ({{ total_vehicles }})
+                    </a>
+                </div>
+
+                {% if vehicles %}
+                    <div class="list-group list-group-flush">
+                        {% for v in vehicles %}
+                            <div class="list-group-item px-0 py-3 border-light-subtle d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(16, 27, 45, 0.06); color: var(--primary-color);">
+                                        <i class="fa-solid fa-car-side fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ v.manufacturer }} {{ v.model_name }} ({{ v.manufacturing_year }})</div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-light text-dark border font-monospace">{{ v.registration_number }}</span>
+                                            <span class="mx-1">•</span>
+                                            <span class="badge bg-light text-secondary">{{ v.get_fuel_type_display }}</span>
+                                            <span class="mx-1">•</span>
+                                            <span>{{ v.current_odometer|default:"0" }} km</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="{% url 'vehicles:detail' v.pk %}" class="btn btn-sm btn-light border rounded-pill px-3">
+                                        Details
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-car-tunnel text-muted fs-1 mb-2"></i>
+                        <p class="text-muted small mb-3">No vehicles added to your garage yet.</p>
+                        <a href="{% url 'vehicles:add' %}" class="btn btn-sm btn-primary rounded-pill px-4" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                            <i class="fa-solid fa-plus me-1"></i> Register Your First Vehicle
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Access Services Card -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-compass text-warning me-2"></i> Quick Automobile Services
+                </h5>
+                <p class="text-muted small mb-3">Direct access to essential on-demand motoring assistance and directory tools:</p>
+
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <a href="{% url 'mechanics:find_mechanics' %}" class="text-decoration-none">
+                            <div class="p-3 border rounded-3 h-100 hover-shadow bg-light d-flex align-items-center gap-3">
+                                <div class="rounded-circle p-2 bg-primary bg-opacity-10 text-primary">
+                                    <i class="fa-solid fa-wrench fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">Find Mechanics</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Search verified technicians</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <a href="{% url 'locations:nearby_stations' %}" class="text-decoration-none">
+                            <div class="p-3 border rounded-3 h-100 hover-shadow bg-light d-flex align-items-center gap-3">
+                                <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success">
+                                    <i class="fa-solid fa-gas-pump fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">Fuel & EV Map</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Locate nearby charging stations</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <a href="{% url 'services:request_create' %}" class="text-decoration-none">
+                            <div class="p-3 border rounded-3 h-100 hover-shadow bg-light d-flex align-items-center gap-3">
+                                <div class="rounded-circle p-2 bg-warning bg-opacity-25 text-dark">
+                                    <i class="fa-solid fa-screwdriver-wrench fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">Book a Repair</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Create service ticket</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <a href="{% url 'services:history_list' %}" class="text-decoration-none">
+                            <div class="p-3 border rounded-3 h-100 hover-shadow bg-light d-flex align-items-center gap-3">
+                                <div class="rounded-circle p-2 bg-info bg-opacity-10 text-info">
+                                    <i class="fa-solid fa-file-invoice fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">Service Logs</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">View verified receipts</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-3 p-3 rounded-3 bg-light border d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fw-bold text-dark small"><i class="fa-solid fa-shield-halved text-success me-1"></i> Roadside Support Guaranteed</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">24/7 breakdown helpline for registered members</div>
+                    </div>
+                    <span class="badge bg-dark font-monospace">1-800-555-AUTO</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Tables Row: Service Requests & Recent Expenses -->
+    <div class="row g-4">
+        <!-- Recent Service Requests -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">Recent Service Requests</h5>
+                    <a href="{% url 'services:request_list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View All <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+
+                {% if recent_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Vehicle</th>
+                                    <th>Provider</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in recent_requests %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold text-dark">{{ req.vehicle.manufacturer }} {{ req.vehicle.model_name }}</div>
+                                            <span class="text-muted font-monospace" style="font-size: 0.75rem;">{{ req.vehicle.registration_number }}</span>
+                                        </td>
+                                        <td>
+                                            {% if req.mechanic %}
+                                                <span class="badge bg-light text-dark border"><i class="fa-solid fa-user-gear me-1"></i> {{ req.mechanic.user.get_full_name|default:req.mechanic.user.username }}</span>
+                                            {% elif req.workshop %}
+                                                <span class="badge bg-light text-dark border"><i class="fa-solid fa-warehouse me-1"></i> {{ req.workshop.workshop_name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Unassigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if req.status == 'PENDING' %}
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            {% elif req.status == 'ACCEPTED' %}
+                                                <span class="badge bg-info text-white">Accepted</span>
+                                            {% elif req.status == 'IN_PROGRESS' %}
+                                                <span class="badge bg-primary text-white">In Progress</span>
+                                            {% elif req.status == 'COMPLETED' %}
+                                                <span class="badge bg-success text-white">Completed</span>
+                                            {% elif req.status == 'CANCELLED' %}
+                                                <span class="badge bg-secondary text-white">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-danger text-white">{{ req.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'services:request_detail' req.pk %}" class="btn btn-sm btn-outline-dark rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-wrench fs-2 mb-2 text-secondary opacity-50"></i>
+                        <p class="mb-0">No active or previous service requests found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Logged Expenses -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">Recent Expenses</h5>
+                    <a href="{% url 'expenses:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View All <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+
+                {% if recent_expenses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Vehicle</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exp in recent_expenses %}
+                                    <tr>
+                                        <td class="text-muted">{{ exp.expense_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">{{ exp.vehicle.manufacturer }} {{ exp.vehicle.model_name }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ exp.get_category_display }}</span>
+                                        </td>
+                                        <td class="text-end fw-bold text-dark">
+                                            ${{ exp.amount|floatformat:2 }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-receipt fs-2 mb-2 text-secondary opacity-50"></i>
+                        <p class="mb-0">No vehicle expenses logged yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block dashboard_content %}
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small text-muted fw-semibold">Registered Vehicles</span>
-                <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
-                    <i class="fa-solid fa-car"></i>
-                </div>
-            </div>
-            <h3 class="fw-bold mb-0">{{ request.user.vehicles.count|default:"0" }}</h3>
-            <small class="text-muted">Total owned vehicles</small>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small text-muted fw-semibold">Active Service Requests</span>
-                <div class="p-2 bg-warning bg-opacity-25 text-warning rounded-3">
-                    <i class="fa-solid fa-clock"></i>
-                </div>
-            </div>
-            <h3 class="fw-bold mb-0">0</h3>
-            <small class="text-muted">Pending workshop/mechanic review</small>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small text-muted fw-semibold">Total Expenses Recorded</span>
-                <div class="p-2 bg-success bg-opacity-10 text-success rounded-3">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
-            </div>
-            <h3 class="fw-bold mb-0">$0.00</h3>
-            <small class="text-muted">Lifetime logged expenditures</small>
-        </div>
-    </div>
-</div>
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Monthly Spending Chart
+    const monthlyLabels = JSON.parse('{{ monthly_labels_json|safe }}');
+    const monthlyData = JSON.parse('{{ monthly_data_json|safe }}');
+    const ctxMonthly = document.getElementById('monthlySpendChart');
 
-<div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center py-5">
-    <div class="brand-icon mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem;">
-        <i class="fa-solid fa-car"></i>
-    </div>
-    <h4 class="fw-bold text-dark mb-2">Welcome to Your Garage</h4>
-    <p class="text-muted small max-w-600 mx-auto mb-4">
-        You are authenticated as a <strong>Vehicle Owner</strong>. From this console, you will be able to register new vehicles, request roadside or workshop repairs, approve quotes, track fuel and maintenance expenses, and access nearby charging stations.
-    </p>
-    <div>
-        <a href="{% url 'core:services' %}" class="btn btn-primary-autovia px-4">
-            <i class="fa-solid fa-compass me-1"></i> Browse Automobile Services
-        </a>
-    </div>
-</div>
+    if (ctxMonthly) {
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Expenditure ($)',
+                    data: monthlyData,
+                    backgroundColor: 'rgba(249, 115, 22, 0.75)',
+                    borderColor: '#F97316',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    maxBarThickness: 36
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' $' + Number(context.raw).toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return '$' + value; },
+                            font: { family: 'Inter', size: 11 }
+                        },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        ticks: { font: { family: 'Inter', size: 11 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Category Breakdown Chart
+    const catLabels = JSON.parse('{{ category_labels_json|safe }}');
+    const catData = JSON.parse('{{ category_data_json|safe }}');
+    const ctxCat = document.getElementById('categoryBreakdownChart');
+
+    if (ctxCat) {
+        if (catData.length === 0 || catData.reduce((a, b) => a + b, 0) === 0) {
+            // Render placeholder donut
+            new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Expenses Recorded'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#E2E8F0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'bottom' },
+                        tooltip: { enabled: false }
+                    },
+                    cutout: '70%'
+                }
+            });
+        } else {
+            new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catData,
+                        backgroundColor: [
+                            '#F97316',
+                            '#101B2D',
+                            '#16A34A',
+                            '#3B82F6',
+                            '#F59E0B',
+                            '#8B5CF6',
+                            '#64748B'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': $' + Number(context.raw).toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    }
+});
+</script>
 {% endblock %}

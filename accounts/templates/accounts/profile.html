@@ -1,0 +1,120 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+
+{% block title %}Profile Settings | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Account & Profile Settings</h2>
+            <p class="text-muted small mb-0">Manage your personal information, contact coordinates, and security preferences.</p>
+        </div>
+        <div>
+            <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-key me-1"></i> Change Password
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profile Summary Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center h-100">
+                <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center mx-auto mb-3 shadow" style="width: 80px; height: 80px; font-size: 2.2rem; background-color: var(--primary-color) !important;">
+                    {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
+                </div>
+                <h4 class="fw-bold text-dark mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                <p class="text-muted small mb-2">@{{ request.user.username }}</p>
+                <div class="mb-3">
+                    <span class="badge bg-warning bg-opacity-25 text-dark px-3 py-2 rounded-pill font-monospace fw-semibold">
+                        <i class="fa-solid fa-car me-1"></i> Vehicle Owner
+                    </span>
+                </div>
+
+                <hr class="my-3 opacity-25">
+
+                <div class="text-start small text-muted">
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span><i class="fa-solid fa-envelope me-2 text-primary"></i> Email:</span>
+                        <strong class="text-dark">{{ request.user.email }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span><i class="fa-solid fa-phone me-2 text-success"></i> Phone:</span>
+                        <strong class="text-dark">{{ profile.phone_number|default:"Not specified" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span><i class="fa-solid fa-car-side me-2 text-info"></i> Vehicles:</span>
+                        <strong class="text-dark">{{ request.user.vehicles.count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span><i class="fa-solid fa-calendar-check me-2 text-secondary"></i> Member Since:</span>
+                        <strong class="text-dark">{{ request.user.date_joined|date:"M d, Y" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-user-pen text-primary me-2"></i> Update Personal Information
+                </h5>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="form-label small fw-semibold text-dark">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:'' }}" class="form-control rounded-3 {% if form.first_name.errors %}is-invalid{% endif %}" required>
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="form-label small fw-semibold text-dark">Last Name</label>
+                            <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:'' }}" class="form-control rounded-3 {% if form.last_name.errors %}is-invalid{% endif %}">
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label small fw-semibold text-dark">Email Address</label>
+                        <input type="email" id="id_email" value="{{ request.user.email }}" class="form-control rounded-3 bg-light text-muted" disabled readonly>
+                        <div class="form-text small">Account email is tied to your primary identity and cannot be changed here.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_phone_number" class="form-label small fw-semibold text-dark">Contact Phone Number</label>
+                        <input type="text" name="phone_number" id="id_phone_number" value="{{ form.phone_number.value|default:'' }}" class="form-control rounded-3 {% if form.phone_number.errors %}is-invalid{% endif %}" placeholder="+1 (555) 000-0000">
+                        {% if form.phone_number.errors %}
+                            <div class="invalid-feedback">{{ form.phone_number.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_address" class="form-label small fw-semibold text-dark">Residential / Garage Address</label>
+                        <textarea name="address" id="id_address" rows="3" class="form-control rounded-3 {% if form.address.errors %}is-invalid{% endif %}" placeholder="Street, Apartment / House No., City, Postal Code">{{ form.address.value|default:'' }}</textarea>
+                        {% if form.address.errors %}
+                            <div class="invalid-feedback">{{ form.address.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text small">Used for roadside assistance dispatch and nearby garage suggestions.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

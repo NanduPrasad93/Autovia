@@ -1,0 +1,183 @@
+{% extends 'workshops/workshop_base.html' %}
+
+{% block title %}Issue Official Repair Invoice | AutoVia{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">
+                    {% if existing_bill %}Update Repair Bill #{{ existing_bill.pk }}{% else %}Issue Official Repair Bill{% endif %}
+                </h3>
+                <p class="text-muted small mb-0">Completes Service Request #{{ service_request.pk }} and syncs digital service record to customer logbook.</p>
+            </div>
+            <div>
+                <a href="{% url 'workshops:request_detail' service_request.pk %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 small">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Request Details
+                </a>
+            </div>
+        </div>
+
+        <!-- Vehicle & Customer Header -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <span class="small text-muted text-uppercase fw-semibold">Serviced Automobile</span>
+                    <h5 class="fw-bold text-dark mb-1">{{ service_request.vehicle.manufacturer }} {{ service_request.vehicle.model_name }}</h5>
+                    <span class="badge bg-dark font-monospace">{{ service_request.vehicle.registration_number }}</span>
+                    <span class="small text-muted ms-2">Odometer: <strong>{{ service_request.vehicle.current_odometer }} km</strong></span>
+                </div>
+                <div class="col-md-6">
+                    <span class="small text-muted text-uppercase fw-semibold">Billed Customer</span>
+                    <div class="fw-semibold text-dark">{{ service_request.customer.get_full_name|default:service_request.customer.username }}</div>
+                    <small class="text-muted"><i class="fa-solid fa-envelope me-1"></i> {{ service_request.customer.email }}</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Form Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger rounded-3 mb-4">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Service Description -->
+                <div class="mb-4">
+                    <label for="{{ form.service_description.id_for_label }}" class="form-label fw-semibold text-dark">
+                        Completed Service Description & Procedures <span class="text-danger">*</span>
+                    </label>
+                    {{ form.service_description }}
+                    <div class="form-text small">Detailed itemization of completed mechanical interventions, replacements, lubricants, and torque testing.</div>
+                    {% if form.service_description.errors %}
+                        <div class="text-danger small mt-1">{{ form.service_description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <!-- Labor Charges -->
+                    <div class="col-md-4">
+                        <label for="{{ form.labor_charges.id_for_label }}" class="form-label fw-semibold text-dark">
+                            Labor Charges ($) <span class="text-danger">*</span>
+                        </label>
+                        {{ form.labor_charges }}
+                        {% if form.labor_charges.errors %}
+                            <div class="text-danger small mt-1">{{ form.labor_charges.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Parts Charges -->
+                    <div class="col-md-4">
+                        <label for="{{ form.parts_charges.id_for_label }}" class="form-label fw-semibold text-dark">
+                            Spare Parts Total ($) <span class="text-danger">*</span>
+                        </label>
+                        {{ form.parts_charges }}
+                        {% if form.parts_charges.errors %}
+                            <div class="text-danger small mt-1">{{ form.parts_charges.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Additional Charges -->
+                    <div class="col-md-4">
+                        <label for="{{ form.additional_charges.id_for_label }}" class="form-label fw-semibold text-dark">
+                            Additional / Environmental Charges ($)
+                        </label>
+                        {{ form.additional_charges }}
+                        {% if form.additional_charges.errors %}
+                            <div class="text-danger small mt-1">{{ form.additional_charges.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Final Invoice Total Calculation Box -->
+                <div class="alert alert-success border-0 rounded-4 p-4 mb-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="small fw-semibold text-uppercase text-success">Total Invoice Amount</div>
+                        <small class="text-muted">Labor + Replacement Components + Environmental Disposal</small>
+                    </div>
+                    <div class="fs-2 fw-bold text-success font-monospace" id="liveBillTotalDisplay">
+                        $0.00
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <!-- Service Date -->
+                    <div class="col-md-4">
+                        <label for="{{ form.service_date.id_for_label }}" class="form-label fw-semibold text-dark">
+                            Service Date <span class="text-danger">*</span>
+                        </label>
+                        {{ form.service_date }}
+                        {% if form.service_date.errors %}
+                            <div class="text-danger small mt-1">{{ form.service_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="col-md-4">
+                        <label for="{{ form.payment_method.id_for_label }}" class="form-label fw-semibold text-dark">
+                            Payment Method
+                        </label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                            <div class="text-danger small mt-1">{{ form.payment_method.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Status Checkbox -->
+                    <div class="col-md-4 d-flex align-items-center pt-md-4">
+                        <div class="form-check form-switch pt-2">
+                            {{ form.is_paid }}
+                            <label class="form-check-label fw-semibold text-dark" for="{{ form.is_paid.id_for_label }}">
+                                Payment Received in Full
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a href="{% url 'workshops:request_detail' service_request.pk %}" class="btn btn-outline-secondary px-4 py-2 rounded-3">Cancel</a>
+                    <button type="submit" class="btn btn-success fw-semibold px-4 py-2 rounded-3 shadow-sm">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Issue Bill & Complete Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const laborInput = document.getElementById('id_labor_charges');
+        const partsInput = document.getElementById('id_parts_charges');
+        const addlInput = document.getElementById('id_additional_charges');
+        const totalDisplay = document.getElementById('liveBillTotalDisplay');
+
+        function updateBillTotal() {
+            const labor = parseFloat(laborInput ? laborInput.value : 0) || 0;
+            const parts = parseFloat(partsInput ? partsInput.value : 0) || 0;
+            const addl = parseFloat(addlInput ? addlInput.value : 0) || 0;
+            const total = (labor + parts + addl).toFixed(2);
+            if (totalDisplay) {
+                totalDisplay.textContent = '$' + total;
+            }
+        }
+
+        [laborInput, partsInput, addlInput].forEach(function(el) {
+            if (el) {
+                el.addEventListener('input', updateBillTotal);
+            }
+        });
+
+        updateBillTotal();
+    });
+</script>
+{% endblock %}

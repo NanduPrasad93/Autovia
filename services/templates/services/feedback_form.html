@@ -1,0 +1,96 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+
+{% block title %}Rate & Review Service #{{ service_request.pk }} | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Rate Your Automobile Service Experience</h2>
+            <p class="text-muted small mb-0">Help fellow vehicle owners in the AutoVia network by rating technician service quality, punctuality, and pricing honesty.</p>
+        </div>
+        <div>
+            <a href="{% url 'services:request_detail' service_request.pk %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Request
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Service Summary Box -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-wrench text-primary me-2"></i> Service Summary</h6>
+                <div class="p-3 rounded-3 bg-light border text-muted small mb-3">
+                    <div class="fw-bold text-dark fs-6">{{ service_request.vehicle.manufacturer }} {{ service_request.vehicle.model_name }}</div>
+                    <div class="font-monospace text-dark mb-2">{{ service_request.vehicle.registration_number }}</div>
+                    <div class="d-flex justify-content-between border-top pt-2">
+                        <span>Provider:</span>
+                        <strong class="text-dark">
+                            {% if service_request.mechanic %}
+                                {{ service_request.mechanic.user.get_full_name|default:service_request.mechanic.user.username }}
+                            {% elif service_request.workshop %}
+                                {{ service_request.workshop.workshop_name }}
+                            {% else %}
+                                Certified Technician
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <div class="d-flex justify-content-between pt-1">
+                        <span>Completed On:</span>
+                        <strong class="text-dark">{{ service_request.updated_at|date:"M d, Y" }}</strong>
+                    </div>
+                </div>
+
+                <div class="small text-muted">
+                    <strong>Reported Issue:</strong>
+                    <p class="mt-1 p-2 bg-light rounded text-dark">{{ service_request.problem_description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating & Review Form -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-star text-warning me-2"></i> Submit Your Review
+                </h5>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label for="id_rating" class="form-label small fw-semibold text-dark">Overall Satisfaction Rating <span class="text-danger">*</span></label>
+                        <select name="rating" id="id_rating" class="form-select form-select-lg rounded-3 {% if form.rating.errors %}is-invalid{% endif %}" required>
+                            <option value="">-- Choose Star Rating (1 to 5) --</option>
+                            <option value="5" {% if form.rating.value == 5 or form.rating.value == '5' %}selected{% endif %}>⭐⭐⭐⭐⭐ 5 Stars - Outstanding Service & Communication</option>
+                            <option value="4" {% if form.rating.value == 4 or form.rating.value == '4' %}selected{% endif %}>⭐⭐⭐⭐ 4 Stars - Very Good, Met Expectations</option>
+                            <option value="3" {% if form.rating.value == 3 or form.rating.value == '3' %}selected{% endif %}>⭐⭐⭐ 3 Stars - Average, Acceptable</option>
+                            <option value="2" {% if form.rating.value == 2 or form.rating.value == '2' %}selected{% endif %}>⭐⭐ 2 Stars - Below Expectations</option>
+                            <option value="1" {% if form.rating.value == 1 or form.rating.value == '1' %}selected{% endif %}>⭐ 1 Star - Unsatisfactory Service</option>
+                        </select>
+                        {% if form.rating.errors %}
+                            <div class="invalid-feedback">{{ form.rating.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_comment" class="form-label small fw-semibold text-dark">Detailed Feedback & Review Notes</label>
+                        <textarea name="comment" id="id_comment" rows="5" class="form-control rounded-3 {% if form.comment.errors %}is-invalid{% endif %}" placeholder="Describe your experience: Was the repair finished on time? Was the billing clear and fair? Did the technician explain the problem properly?">{{ form.comment.value|default:'' }}</textarea>
+                        {% if form.comment.errors %}
+                            <div class="invalid-feedback">{{ form.comment.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'services:request_detail' service_request.pk %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Post Verified Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

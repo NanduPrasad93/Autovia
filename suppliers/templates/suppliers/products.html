@@ -1,0 +1,238 @@
+{% extends "suppliers/supplier_base.html" %}
+
+{% block title %}Spare Parts Catalog | AutoVia Supplier Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header & Action -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-boxes-stacked text-warning"></i> Spare Parts Catalog
+            </h2>
+            <p class="text-muted mb-0 small">
+                Manage your replacement inventory, update unit pricing, vehicle model fitments, and stock levels.
+            </p>
+        </div>
+        <div>
+            {% if supplier.is_approved %}
+                <a href="{% url 'suppliers:product_add' %}" class="btn btn-warning text-dark fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-plus"></i> Add New Spare Part
+                </a>
+            {% else %}
+                <button class="btn btn-secondary text-white fw-semibold d-inline-flex align-items-center gap-2 shadow-sm" disabled title="Account verification required">
+                    <i class="fa-solid fa-lock"></i> Add New Spare Part
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search, Filter & Sort Controls Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3 p-md-4">
+            <form method="GET" class="row g-2 align-items-center">
+                <!-- Search Box -->
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" name="q" class="form-control bg-light border-start-0" placeholder="Search by name, SKU, manufacturer, models..." value="{{ query }}">
+                    </div>
+                </div>
+
+                <!-- Stock Filter -->
+                <div class="col-sm-6 col-md-2">
+                    <select name="stock" class="form-select bg-light">
+                        <option value="">All Stock Levels</option>
+                        <option value="in" {% if stock_filter == 'in' %}selected{% endif %}>In Stock (&gt; 0)</option>
+                        <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low Stock (&le; 5)</option>
+                        <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Out of Stock (0)</option>
+                    </select>
+                </div>
+
+                <!-- Manufacturer Filter -->
+                <div class="col-sm-6 col-md-2">
+                    <select name="mfg" class="form-select bg-light">
+                        <option value="">All Manufacturers</option>
+                        {% for m in manufacturers %}
+                            <option value="{{ m }}" {% if mfg_filter == m %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sort By -->
+                <div class="col-sm-6 col-md-2">
+                    <select name="sort" class="form-select bg-light">
+                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort: Name (A-Z)</option>
+                        <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="stock_asc" {% if sort_by == 'stock_asc' %}selected{% endif %}>Stock: Low to High</option>
+                        <option value="stock_desc" {% if sort_by == 'stock_desc' %}selected{% endif %}>Stock: High to Low</option>
+                    </select>
+                </div>
+
+                <!-- Submit & Clear Buttons -->
+                <div class="col-sm-6 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-dark w-100 fw-medium">
+                        Apply
+                    </button>
+                    {% if query or stock_filter or mfg_filter or sort_by != 'name' %}
+                        <a href="{% url 'suppliers:products' %}" class="btn btn-outline-secondary" title="Clear Filters">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products Catalog Table -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                Product Catalog ({{ products.count }} item{{ products.count|pluralize }})
+            </h5>
+            <a href="{% url 'suppliers:inventory' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-warehouse me-1"></i> Stock Console
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if products %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-4">Part / SKU</th>
+                                <th>Manufacturer & Models</th>
+                                <th>Stock Status</th>
+                                <th>Unit Price</th>
+                                <th>Listing Status</th>
+                                <th class="pe-4 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in products %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if item.image %}
+                                                <img src="{{ item.image.url }}" alt="{{ item.part_name }}" class="rounded-3 object-fit-cover border" style="width: 48px; height: 48px;">
+                                            {% else %}
+                                                <div class="rounded-3 bg-light text-muted d-flex align-items-center justify-content-center border" style="width: 48px; height: 48px;">
+                                                    <i class="fa-solid fa-gears fs-5"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ item.part_name }}</div>
+                                                <span class="badge bg-light text-dark font-monospace border small">
+                                                    {{ item.part_number }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium text-dark">{{ item.compatible_manufacturer|default:"Universal / Multi-make" }}</div>
+                                        <small class="text-muted d-block text-truncate" style="max-width: 220px;" title="{{ item.compatible_vehicle_models }}">
+                                            {{ item.compatible_vehicle_models|default:"All compatible models" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if item.stock_quantity == 0 %}
+                                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50">
+                                                <i class="fa-solid fa-circle-xmark me-1"></i> Out of Stock (0)
+                                            </span>
+                                        {% elif item.stock_quantity <= 5 %}
+                                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50">
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i> Low Stock ({{ item.stock_quantity }})
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50">
+                                                <i class="fa-solid fa-check me-1"></i> {{ item.stock_quantity }} units
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold text-dark">
+                                        ₹{{ item.price }}
+                                    </td>
+                                    <td>
+                                        {% if item.is_available %}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                                Active Listing
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">
+                                                Inactive
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <div class="btn-group">
+                                            <a href="{% url 'suppliers:product_edit' item.pk %}" class="btn btn-sm btn-outline-primary" title="Edit Product">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.pk }}" title="Delete Product">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Confirmation Modal -->
+                                        <div class="modal fade" id="deleteModal{{ item.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ item.pk }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content rounded-4 border-0 shadow">
+                                                    <div class="modal-header border-bottom-0 pb-0">
+                                                        <h5 class="modal-title fw-bold text-danger" id="deleteModalLabel{{ item.pk }}">
+                                                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirm Product Deletion
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body text-start py-3">
+                                                        <p class="text-dark mb-2">
+                                                            Are you sure you want to delete <strong>{{ item.part_name }}</strong> (SKU: <code>{{ item.part_number }}</code>)?
+                                                        </p>
+                                                        <p class="text-muted small mb-0">
+                                                            This action cannot be undone. AutoVia strictly disallows deleting products currently involved in active purchase orders.
+                                                        </p>
+                                                    </div>
+                                                    <div class="modal-footer border-top-0 pt-0">
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form method="POST" action="{% url 'suppliers:product_delete' item.pk %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="fa-solid fa-trash me-1"></i> Delete Part
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 px-3">
+                    <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                        <i class="fa-solid fa-boxes-stacked fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">No Products Found</h5>
+                    <p class="text-muted small mb-3">
+                        {% if query or stock_filter or mfg_filter %}
+                            No spare parts match your active search and filter criteria.
+                        {% else %}
+                            You have not added any spare parts to your catalog yet.
+                        {% endif %}
+                    </p>
+                    {% if query or stock_filter or mfg_filter %}
+                        <a href="{% url 'suppliers:products' %}" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+                    {% elif supplier.is_approved %}
+                        <a href="{% url 'suppliers:product_add' %}" class="btn btn-warning text-dark fw-semibold btn-sm shadow-sm">
+                            <i class="fa-solid fa-plus me-1"></i> Add Your First Part
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

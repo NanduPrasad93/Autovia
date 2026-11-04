@@ -1,0 +1,204 @@
+{% extends "admin_dashboard/admin_base.html" %}
+
+{% block title %}Complaint #{{ complaint.pk }} | AutoVia Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Breadcrumb & Back -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:complaints' %}" class="text-decoration-none">Complaints</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">#CMP-{{ complaint.pk }}</li>
+                </ol>
+            </nav>
+            <h2 class="h3 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-file-circle-exclamation text-primary"></i> Grievance Docket #CMP-{{ complaint.pk }}
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard:complaints' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Complaints
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Grievance Content & Resolution Form -->
+        <div class="col-lg-7">
+            <!-- Grievance Statement -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Grievance Statement</h5>
+                    <span class="badge {% if complaint.status == 'OPEN' %}bg-warning text-dark{% elif complaint.status == 'IN_PROGRESS' %}bg-info text-dark{% elif complaint.status == 'RESOLVED' %}bg-success{% elif complaint.status == 'REJECTED' %}bg-secondary{% else %}bg-dark{% endif %} px-3 py-2 rounded-pill">
+                        {{ complaint.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Subject</span>
+                        <h5 class="fw-bold text-dark mb-0">{{ complaint.subject }}</h5>
+                    </div>
+
+                    <div class="row g-3 mb-4 text-muted small border-top border-bottom py-2 my-3">
+                        <div class="col-sm-6">
+                            <span>Submitted: </span>
+                            <strong class="text-dark">{{ complaint.created_at|date:"F j, Y, g:i a" }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span>Last Updated: </span>
+                            <strong class="text-dark">{{ complaint.updated_at|date:"F j, Y, g:i a" }}</strong>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-muted small d-block mb-2 fw-semibold">Customer Statement & Evidence:</span>
+                        <div class="p-3 bg-light rounded-3 text-secondary lh-base">
+                            {{ complaint.description|linebreaksbr }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Administrative Adjudication & Response Form -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-gavel text-primary"></i> Administrative Decision & Resolution
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Adjudication Status</label>
+                            <select name="status" class="form-select bg-light">
+                                {% for s_val, s_label in statuses %}
+                                    <option value="{{ s_val }}" {% if complaint.status == s_val %}selected{% endif %}>
+                                        {{ s_label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text small text-muted">
+                                Select <strong>Resolved</strong> after rectifying issues or <strong>Rejected</strong> if complaint violates terms.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">Administrative Findings & Official Response</label>
+                            <textarea name="admin_response" class="form-control bg-light" rows="5" placeholder="Enter detailed findings, mediator notes, refund details, or official platform resolution...">{{ complaint.admin_response }}</textarea>
+                            <div class="form-text small text-muted">
+                                This response will be logged in the dispute audit trail.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-primary px-4 fw-medium">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Resolution
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Resolution Audit Record -->
+            {% if complaint.resolved_by or complaint.resolved_at %}
+                <div class="card border-0 shadow-sm rounded-4 bg-light">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-success"></i> Resolution Audit Trail
+                        </h6>
+                        <div class="row g-2 small text-muted">
+                            <div class="col-sm-6">
+                                Adjudicated By: <strong class="text-dark">{{ complaint.resolved_by.get_full_name|default:complaint.resolved_by.username }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                Timestamp: <strong class="text-dark">{{ complaint.resolved_at|date:"M d, Y H:i" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Complainant & Linked Service Ticket -->
+        <div class="col-lg-5">
+            <!-- Complainant Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Complainant Information</h5>
+                    <a href="{% url 'admin_dashboard:user_detail' complaint.user.pk %}" class="btn btn-outline-dark btn-sm rounded-pill">
+                        User Profile
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                            {{ complaint.user.first_name|first|default:complaint.user.username|first|upper }}
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">{{ complaint.user.get_full_name|default:complaint.user.username }}</h6>
+                            <span class="text-muted small">@{{ complaint.user.username }}</span>
+                        </div>
+                    </div>
+                    <div class="small">
+                        <div class="mb-2"><i class="fa-regular fa-envelope me-2 text-muted"></i> {{ complaint.user.email }}</div>
+                        {% if complaint.user.profile.phone_number %}
+                            <div><i class="fa-solid fa-phone me-2 text-muted"></i> {{ complaint.user.profile.phone_number }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linked Service Request -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-wrench text-primary"></i> Associated Service Ticket
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if complaint.service_request %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-light text-primary border font-monospace px-2 py-1 fs-6">
+                                Ticket #{{ complaint.service_request.pk }}
+                            </span>
+                            <span class="badge {% if complaint.service_request.status == 'COMPLETED' %}bg-success{% elif complaint.service_request.status == 'IN_PROGRESS' %}bg-primary{% else %}bg-warning text-dark{% endif %} px-2 py-1 rounded-pill">
+                                {{ complaint.service_request.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="small mb-3">
+                            <div class="text-muted mb-1">
+                                Vehicle: <strong class="text-dark">{{ complaint.service_request.vehicle.registration_number }}</strong> ({{ complaint.service_request.vehicle.manufacturer }} {{ complaint.service_request.vehicle.model_name }})
+                            </div>
+                            <div class="text-muted mb-1">
+                                Scheduled: <strong class="text-dark">{{ complaint.service_request.requested_date|date:"M d, Y" }}</strong>
+                            </div>
+                            <div class="text-muted">
+                                Provider:
+                                {% if complaint.service_request.mechanic %}
+                                    <strong class="text-dark">{{ complaint.service_request.mechanic.user.get_full_name|default:complaint.service_request.mechanic.user.username }} (Mechanic)</strong>
+                                {% elif complaint.service_request.workshop %}
+                                    <strong class="text-dark">{{ complaint.service_request.workshop.workshop_name }} (Workshop)</strong>
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="{% url 'admin_dashboard:service_detail' complaint.service_request.pk %}" class="btn btn-outline-dark btn-sm w-100 rounded-pill">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Inspect Associated Service Ticket
+                        </a>
+                    {% else %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fa-solid fa-circle-info fa-2x mb-2 text-secondary opacity-50"></i>
+                            <p class="mb-0 small">This complaint is filed as a general platform issue without a linked service ticket.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

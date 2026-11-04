@@ -222,8 +222,11 @@
                 <a class="nav-link {% if request.resolver_match.url_name == 'history_list' or request.resolver_match.url_name == 'record_detail' %}active{% endif %}" href="{% url 'services:history_list' %}">
                     <i class="fa-solid fa-clipboard-check"></i> Service History
                 </a>
-                <a class="nav-link {% if request.resolver_match.app_name == 'expenses' %}active{% endif %}" href="{% url 'expenses:list' %}">
+                <a class="nav-link {% if request.resolver_match.app_name == 'expenses' and request.resolver_match.url_name != 'analytics' %}active{% endif %}" href="{% url 'expenses:list' %}">
                     <i class="fa-solid fa-wallet"></i> Vehicle Expenses
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'expenses:analytics' %}">
+                    <i class="fa-solid fa-chart-pie"></i> Expense Analytics
                 </a>
                 <a class="nav-link {% if request.resolver_match.app_name == 'locations' %}active{% endif %}" href="{% url 'locations:nearby_stations' %}">
                     <i class="fa-solid fa-map-location-dot"></i> Fuel & EV Stations
@@ -268,8 +271,11 @@
                     <a class="nav-link {% if request.resolver_match.url_name == 'history_list' %}active{% endif %}" href="{% url 'services:history_list' %}">
                         <i class="fa-solid fa-clipboard-check"></i> Service History
                     </a>
-                    <a class="nav-link {% if request.resolver_match.app_name == 'expenses' %}active{% endif %}" href="{% url 'expenses:list' %}">
+                    <a class="nav-link {% if request.resolver_match.app_name == 'expenses' and request.resolver_match.url_name != 'analytics' %}active{% endif %}" href="{% url 'expenses:list' %}">
                         <i class="fa-solid fa-wallet"></i> Vehicle Expenses
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'expenses:analytics' %}">
+                        <i class="fa-solid fa-chart-pie"></i> Expense Analytics
                     </a>
                     <a class="nav-link {% if request.resolver_match.app_name == 'locations' %}active{% endif %}" href="{% url 'locations:nearby_stations' %}">
                         <i class="fa-solid fa-map-location-dot"></i> Fuel & EV Stations

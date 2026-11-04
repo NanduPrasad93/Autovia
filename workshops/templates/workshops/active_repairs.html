@@ -1,0 +1,101 @@
+{% extends 'workshops/workshop_base.html' %}
+
+{% block title %}Active Repairs & Service Bays | AutoVia{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Active Repairs & Service Bays</h3>
+        <p class="text-muted small mb-0">Progress vehicles through diagnostics, mechanical repair, and final invoicing.</p>
+    </div>
+    <div>
+        <a href="{% url 'workshops:incoming_requests' %}" class="btn btn-warning fw-semibold rounded-3 px-3 py-2 small shadow-sm">
+            <i class="fa-solid fa-inbox me-1"></i> Accept More Requests
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    {% if repairs %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Job #</th>
+                        <th>Vehicle</th>
+                        <th>Customer</th>
+                        <th>Problem Description</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                        <th class="text-end">Milestone Controls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in repairs %}
+                    <tr>
+                        <td class="fw-bold font-monospace text-muted">#{{ req.pk }}</td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ req.vehicle.manufacturer }} {{ req.vehicle.model_name }}</div>
+                            <span class="badge bg-dark font-monospace">{{ req.vehicle.registration_number }}</span>
+                            <small class="text-muted ms-1">{{ req.vehicle.get_fuel_type_display }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ req.customer.get_full_name|default:req.customer.username }}</div>
+                            <small class="text-muted"><i class="fa-solid fa-phone me-1 text-success"></i> {{ req.customer.profile.phone_number|default:"No phone" }}</small>
+                        </td>
+                        <td>
+                            <div class="small text-truncate" style="max-width: 220px;" title="{{ req.problem_description }}">
+                                {{ req.problem_description }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if req.status == 'ACCEPTED' %}
+                                <span class="badge bg-primary px-3 py-2"><i class="fa-solid fa-check me-1"></i> Accepted</span>
+                            {% elif req.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-info text-dark px-3 py-2"><i class="fa-solid fa-wrench me-1"></i> In Service Bay</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small text-muted">{{ req.updated_at|date:"M d, Y" }}</div>
+                            <small class="text-muted">{{ req.updated_at|date:"h:i A" }}</small>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-1">
+                                <a href="{% url 'workshops:request_detail' req.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1">
+                                    <i class="fa-solid fa-eye me-1"></i> Details
+                                </a>
+
+                                {% if req.status == 'ACCEPTED' %}
+                                    <!-- Advance to IN_PROGRESS -->
+                                    <form method="POST" action="{% url 'workshops:update_repair_status' req.pk %}" class="d-inline-block m-0 p-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-semibold">
+                                            <i class="fa-solid fa-play me-1"></i> Start Bay Repair
+                                        </button>
+                                    </form>
+                                {% elif req.status == 'IN_PROGRESS' %}
+                                    <!-- Advance to COMPLETED via Bill Generation -->
+                                    <a href="{% url 'workshops:generate_bill' req.pk %}" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-semibold">
+                                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Complete & Bill
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-warehouse fs-1 mb-3 opacity-50"></i>
+            <h5 class="fw-bold text-dark">No Active Repair Orders In Bays</h5>
+            <p class="small text-muted mb-3">All accepted jobs have been completed or there are no active service tickets.</p>
+            <a href="{% url 'workshops:incoming_requests' %}" class="btn btn-warning fw-semibold px-4 py-2 rounded-3 shadow-sm">
+                <i class="fa-solid fa-inbox me-1"></i> Browse Incoming Requests
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

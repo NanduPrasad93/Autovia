@@ -1,0 +1,163 @@
+{% extends "suppliers/supplier_base.html" %}
+
+{% block title %}Verification Status | AutoVia Supplier Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-primary"></i> Verification & Accreditation Status
+            </h2>
+            <p class="text-muted mb-0 small">
+                AutoVia verified supplier trust certification ensuring authentic automobile spare parts and consumer warranty compliance.
+            </p>
+        </div>
+        <a href="{% url 'suppliers:profile' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+            <i class="fa-solid fa-store"></i> Edit Profile Info
+        </a>
+    </div>
+
+    <!-- Main Status Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center g-4">
+                <div class="col-md-8">
+                    {% if supplier.is_approved %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 fs-6 px-3 py-2 fw-semibold">
+                                <i class="fa-solid fa-circle-check me-2"></i> STATUS: APPROVED & ACCREDITED
+                            </span>
+                            <span class="text-muted small">Updated on {{ supplier.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-2">Your Supplier Enterprise is Fully Verified</h3>
+                        <p class="text-secondary leading-relaxed mb-4">
+                            Congratulations! Your automotive spare parts dealership has passed all platform compliance and quality audits. Your organization has full operational authority to publish spare parts into the central catalog, accept customer orders, and manage dispatch logistics.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'suppliers:product_add' %}" class="btn btn-warning text-dark fw-semibold px-4 py-2 shadow-sm">
+                                <i class="fa-solid fa-plus me-1"></i> Add Part to Catalog
+                            </a>
+                            <a href="{% url 'suppliers:orders' %}" class="btn btn-outline-dark px-4 py-2">
+                                <i class="fa-solid fa-cart-flatbed me-1"></i> View Orders
+                            </a>
+                        </div>
+                    {% elif supplier.verification_status == 'REJECTED' %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 fs-6 px-3 py-2 fw-semibold">
+                                <i class="fa-solid fa-circle-xmark me-2"></i> STATUS: VERIFICATION REJECTED
+                            </span>
+                            <span class="text-muted small">Updated on {{ supplier.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-2">Accreditation Audit Incomplete or Declined</h3>
+                        <p class="text-secondary leading-relaxed mb-4">
+                            Platform administrators have declined this supplier application due to invalid or unverified business documentation. Catalog listing and order fulfillment capabilities remain disabled. Please verify your business profile address and hotline or contact platform administration.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'suppliers:profile' %}" class="btn btn-primary px-4 py-2">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Update Business Profile
+                            </a>
+                            <a href="mailto:admin@autovia.local" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="fa-solid fa-envelope me-1"></i> Contact Administration
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 fs-6 px-3 py-2 fw-semibold">
+                                <i class="fa-solid fa-clock me-2"></i> STATUS: VERIFICATION PENDING
+                            </span>
+                            <span class="text-muted small">Registered on {{ supplier.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-2">Verification Review Underway</h3>
+                        <p class="text-secondary leading-relaxed mb-4">
+                            Your supplier registration has been submitted and is currently in the compliance queue. AutoVia administrators verify dealer licenses, warehouse physical locations, and component warranties to protect vehicle owners and workshops.
+                        </p>
+                        <div class="alert alert-light border small text-muted mb-4">
+                            <i class="fa-solid fa-circle-info text-primary me-2"></i>
+                            <strong>Current Capabilities:</strong> You may explore your dashboard and keep your business profile updated. Product listing and order fulfillment will unlock immediately once an administrator approves your verification.
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'suppliers:profile' %}" class="btn btn-outline-dark px-4 py-2">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Check Profile Details
+                            </a>
+                            <a href="{% url 'suppliers:dashboard' %}" class="btn btn-light px-4 py-2">
+                                <i class="fa-solid fa-gauge-high me-1"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <div class="p-4 rounded-4 bg-light d-inline-block">
+                        {% if supplier.is_approved %}
+                            <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 100px; height: 100px;">
+                                <i class="fa-solid fa-shield-check fs-1"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">Authentic Supplier</h5>
+                            <span class="badge bg-success">Tier 1 Verified</span>
+                        {% elif supplier.verification_status == 'REJECTED' %}
+                            <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 100px; height: 100px;">
+                                <i class="fa-solid fa-triangle-exclamation fs-1"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">Action Required</h5>
+                            <span class="badge bg-danger">Audit Declined</span>
+                        {% else %}
+                            <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 100px; height: 100px;">
+                                <i class="fa-solid fa-hourglass-half fs-1"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">Pending Audit</h5>
+                            <span class="badge bg-warning text-dark">Queue Position: Active</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Audit Guidelines & Policy Information -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-building-circle-check fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">1. Business Legitimacy</h5>
+                    <p class="text-muted small mb-0">
+                        Suppliers must be registered automotive entities or licensed distributors with verifiable physical commercial warehouse facilities.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="rounded-3 bg-warning bg-opacity-10 text-warning p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-award fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">2. OEM Authenticity</h5>
+                    <p class="text-muted small mb-0">
+                        Strict policy against refurbished, counterfeit, or unbranded substandard parts. All listed SKUs must follow manufacturer part numbering.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="rounded-3 bg-success bg-opacity-10 text-success p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-truck-fast fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">3. Dispatch Compliance</h5>
+                    <p class="text-muted small mb-0">
+                        Verified suppliers commit to safe order processing timelines, real-time stock deduction, and immediate order dispatch tracking.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

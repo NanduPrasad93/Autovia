@@ -141,3 +141,28 @@ class RegistrationForm(forms.Form):
                     self.add_error('password', e)
 
         return cleaned_data
+
+
+class ProfileUpdateForm(forms.Form):
+    first_name = forms.CharField(
+        label="First Name",
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'required': True})
+    )
+    last_name = forms.CharField(
+        label="Last Name",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    phone_number = forms.CharField(
+        label="Phone Number",
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+1 (555) 000-0000'})
+    )
+    address = forms.CharField(
+        label="Residential Address",
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Street, Apartment, City, Postal Code'})
+    )

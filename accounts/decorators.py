@@ -22,9 +22,9 @@ def role_required(allowed_roles):
             profile = getattr(request.user, 'profile', None)
             user_role = profile.role if profile else None
 
-            # Special case for ADMIN role checks
+            # Special case for ADMIN role checks (strictly requires is_staff or is_superuser)
             if 'ADMIN' in allowed_roles:
-                if request.user.is_staff or request.user.is_superuser or user_role == 'ADMIN':
+                if request.user.is_staff or request.user.is_superuser:
                     return view_func(request, *args, **kwargs)
                 raise PermissionDenied("Access Denied: Administrative privileges required.")
 
@@ -54,4 +54,17 @@ def supplier_required(view_func):
 
 
 def admin_required(view_func):
-    return role_required(['ADMIN'])(view_func)
+    """
+    Decorator strictly restricting view access to authenticated Django staff or superusers.
+    Users with an 'ADMIN' role in their UserProfile without is_staff or is_superuser
+    will be rejected with HTTP 403 PermissionDenied.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), login_url='accounts:login')
+        if not (request.user.is_staff or request.user.is_superuser):
+            raise PermissionDenied("Access Denied: Administrative staff or superuser privileges required.")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+

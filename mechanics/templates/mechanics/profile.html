@@ -1,0 +1,170 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Technician Profile | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Technician Professional Profile</h2>
+            <p class="text-muted small mb-0">Manage your automotive specializations, years of experience, service location, and credentials.</p>
+        </div>
+        <div>
+            <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-key me-1"></i> Security & Password
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Summary Sidebar Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center h-100">
+                <div class="mx-auto mb-3 position-relative" style="width: 100px; height: 100px;">
+                    {% if request.user.profile.profile_image %}
+                        <img src="{{ request.user.profile.profile_image.url }}" alt="Profile" class="rounded-circle w-100 h-100 object-fit-cover border shadow-sm">
+                    {% else %}
+                        <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center w-100 h-100 shadow" style="font-size: 2.5rem; background-color: var(--primary-color) !important;">
+                            {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <h4 class="fw-bold text-dark mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                <p class="text-muted small mb-2">@{{ request.user.username }}</p>
+
+                <div class="mb-3">
+                    {% if mechanic.verification_status == 'VERIFIED' %}
+                        <span class="badge bg-success bg-opacity-25 text-success px-3 py-2 rounded-pill font-monospace fw-semibold">
+                            <i class="fa-solid fa-circle-check me-1"></i> Verified Mechanic
+                        </span>
+                    {% elif mechanic.verification_status == 'PENDING' %}
+                        <span class="badge bg-warning bg-opacity-25 text-warning px-3 py-2 rounded-pill font-monospace fw-semibold">
+                            <i class="fa-solid fa-clock me-1"></i> Verification Pending
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger bg-opacity-25 text-danger px-3 py-2 rounded-pill font-monospace fw-semibold">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Unverified
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="alert alert-light border rounded-3 p-3 text-start small text-muted mb-3">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span><i class="fa-solid fa-wrench me-2 text-primary"></i> Specialization:</span>
+                        <strong class="text-dark">{{ mechanic.specialization }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span><i class="fa-solid fa-briefcase me-2 text-info"></i> Experience:</span>
+                        <strong class="text-dark">{{ mechanic.experience_years }} Years</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span><i class="fa-solid fa-location-dot me-2 text-danger"></i> Coverage:</span>
+                        <strong class="text-dark">{{ mechanic.service_location }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span><i class="fa-solid fa-calendar-check me-2 text-secondary"></i> Member Since:</span>
+                        <strong class="text-dark">{{ request.user.date_joined|date:"M Y" }}</strong>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 bg-light text-muted small text-start">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-lock text-secondary me-1"></i> Verification Security</div>
+                    Verification status is governed strictly by platform administrators and cannot be altered directly to guarantee consumer safety.
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-user-pen text-primary me-2"></i> Update Professional Credentials
+                </h5>
+
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="form-label small fw-semibold text-dark">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:'' }}" class="form-control rounded-3 {% if form.first_name.errors %}is-invalid{% endif %}" required>
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="form-label small fw-semibold text-dark">Last Name</label>
+                            <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:'' }}" class="form-control rounded-3 {% if form.last_name.errors %}is-invalid{% endif %}">
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_phone_number" class="form-label small fw-semibold text-dark">Contact Phone Number</label>
+                            <input type="text" name="phone_number" id="id_phone_number" value="{{ form.phone_number.value|default:'' }}" class="form-control rounded-3 {% if form.phone_number.errors %}is-invalid{% endif %}" placeholder="+1 (555) 000-0000">
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback">{{ form.phone_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_profile_image" class="form-label small fw-semibold text-dark">Profile Photo</label>
+                            <input type="file" name="profile_image" id="id_profile_image" class="form-control rounded-3 {% if form.profile_image.errors %}is-invalid{% endif %}" accept="image/*">
+                            {% if form.profile_image.errors %}
+                                <div class="invalid-feedback">{{ form.profile_image.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label for="id_specialization" class="form-label small fw-semibold text-dark">Primary Specialization <span class="text-danger">*</span></label>
+                            <input type="text" name="specialization" id="id_specialization" value="{{ form.specialization.value|default:'' }}" class="form-control rounded-3 {% if form.specialization.errors %}is-invalid{% endif %}" placeholder="e.g. Brake Systems, Engine Overhaul, Hybrid/EV Battery" required>
+                            {% if form.specialization.errors %}
+                                <div class="invalid-feedback">{{ form.specialization.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="id_experience_years" class="form-label small fw-semibold text-dark">Years of Experience <span class="text-danger">*</span></label>
+                            <input type="number" name="experience_years" id="id_experience_years" value="{{ form.experience_years.value|default:'0' }}" min="0" max="60" class="form-control rounded-3 {% if form.experience_years.errors %}is-invalid{% endif %}" required>
+                            {% if form.experience_years.errors %}
+                                <div class="invalid-feedback">{{ form.experience_years.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_service_location" class="form-label small fw-semibold text-dark">Primary Service Coverage Area <span class="text-danger">*</span></label>
+                        <input type="text" name="service_location" id="id_service_location" value="{{ form.service_location.value|default:'' }}" class="form-control rounded-3 {% if form.service_location.errors %}is-invalid{% endif %}" placeholder="e.g. Metro City Center, East Corridor, Mobile On-site" required>
+                        {% if form.service_location.errors %}
+                            <div class="invalid-feedback">{{ form.service_location.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text small">Vehicle owners will use this location to match nearby emergency dispatches.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_description" class="form-label small fw-semibold text-dark">Professional Biography & Services Overview</label>
+                        <textarea name="description" id="id_description" rows="4" class="form-control rounded-3 {% if form.description.errors %}is-invalid{% endif %}" placeholder="Outline your diagnostic tooling, ASE certifications, OEM training, and shop hours...">{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'mechanics:dashboard' %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

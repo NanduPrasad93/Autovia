@@ -1,0 +1,162 @@
+{% extends 'workshops/workshop_base.html' %}
+
+{% block title %}Invoice #{{ bill.pk }} | AutoVia{% endblock %}
+
+{% block extra_head %}
+<style>
+    @media print {
+        body {
+            background-color: #FFFFFF !important;
+        }
+        .dashboard-sidebar,
+        .autovia-navbar,
+        .btn-print-hide {
+            display: none !important;
+        }
+        .dashboard-main {
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+        .invoice-card {
+            box-shadow: none !important;
+            border: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex align-items-center justify-content-between mb-4 btn-print-hide">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">Official Repair Bill #{{ bill.pk }}</h3>
+                <p class="text-muted small mb-0">Issued by {{ workshop.workshop_name }} &bull; Linked to Service Request #{{ service_request.pk }}.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'workshops:service_history' %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 small">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Service History
+                </a>
+                <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-semibold shadow-sm" onclick="window.print();">
+                    <i class="fa-solid fa-print me-1"></i> Print Invoice
+                </button>
+            </div>
+        </div>
+
+        <!-- Printable Invoice Sheet -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white invoice-card mb-4">
+            <!-- Header Section -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-4 pb-4 border-bottom mb-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="brand-icon" style="background-color: var(--primary-color); color: #FFFFFF; width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-building-shield"></i>
+                        </span>
+                        <h4 class="fw-bold text-dark mb-0">{{ workshop.workshop_name }}</h4>
+                    </div>
+                    <div class="text-muted small">{{ workshop.address }}</div>
+                    <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i> {{ workshop.phone_number }}</div>
+                    <div class="text-muted small"><i class="fa-solid fa-envelope me-1"></i> {{ workshop.owner.email }}</div>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success mt-2">
+                        <i class="fa-solid fa-certificate me-1"></i> Authorized Workshop Facility
+                    </span>
+                </div>
+                <div class="text-sm-end">
+                    <span class="badge bg-dark font-monospace fs-6 px-3 py-2 mb-2">INVOICE #{{ bill.pk }}</span>
+                    <div class="text-muted small">Date: <strong>{{ bill.service_date|date:"F d, Y" }}</strong></div>
+                    <div class="text-muted small">Service Order: <strong>#{{ service_request.pk }}</strong></div>
+                    <div class="mt-2">
+                        {% if bill.is_paid %}
+                            <span class="badge bg-success px-3 py-2"><i class="fa-solid fa-check me-1"></i> PAID IN FULL</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark px-3 py-2"><i class="fa-solid fa-clock me-1"></i> PAYMENT PENDING</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer & Vehicle Info Grid -->
+            <div class="row g-4 pb-4 border-bottom mb-4">
+                <div class="col-sm-6">
+                    <span class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.05em;">Billed To (Vehicle Owner)</span>
+                    <h5 class="fw-bold text-dark mb-1">{{ bill.customer.get_full_name|default:bill.customer.username }}</h5>
+                    <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i> {{ bill.customer.profile.phone_number|default:"No phone on file" }}</div>
+                    <div class="text-muted small"><i class="fa-solid fa-envelope me-1"></i> {{ bill.customer.email }}</div>
+                    <div class="text-muted small">{{ bill.customer.profile.address }}</div>
+                </div>
+                <div class="col-sm-6 text-sm-end">
+                    <span class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.05em;">Automobile Specifications</span>
+                    <h5 class="fw-bold text-dark mb-1">{{ bill.vehicle.manufacturer }} {{ bill.vehicle.model_name }}</h5>
+                    <div class="text-dark small"><span class="badge bg-dark font-monospace">{{ bill.vehicle.registration_number }}</span></div>
+                    <div class="text-muted small">Fuel: {{ bill.vehicle.get_fuel_type_display }} &bull; Year: {{ bill.vehicle.manufacturing_year }}</div>
+                    <div class="text-muted small">Odometer: <strong>{{ bill.vehicle.current_odometer }} km</strong></div>
+                </div>
+            </div>
+
+            <!-- Service Description -->
+            <div class="mb-4 pb-4 border-bottom">
+                <h6 class="fw-bold text-dark mb-2">Mechanical Procedures & Work Performed</h6>
+                <div class="bg-light rounded-3 p-3 text-dark small border">
+                    {{ bill.service_description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Itemized Charges Table -->
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Charge Description</th>
+                            <th class="text-end" style="width: 25%;">Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">Workshop Bay Labor Charges</div>
+                                <small class="text-muted">Master technician bay hours, diagnostic computer scans, assembly & testing</small>
+                            </td>
+                            <td class="text-end fw-semibold text-dark">${{ bill.labor_charges|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">Replacement Spare Parts & Lubricants</div>
+                                <small class="text-muted">OEM / certified components, fluids, gaskets, and filters</small>
+                            </td>
+                            <td class="text-end fw-semibold text-dark">${{ bill.parts_charges|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">Additional / Environmental Disposal Charges</div>
+                                <small class="text-muted">Safe chemical disposal, workshop consumables, and facility fees</small>
+                            </td>
+                            <td class="text-end fw-semibold text-dark">${{ bill.additional_charges|floatformat:2 }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="fw-bold text-dark text-uppercase fs-6">Grand Total Amount</td>
+                            <td class="text-end fw-bold text-dark fs-5 font-monospace">${{ bill.total_amount|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Terms & Signatures -->
+            <div class="row g-4 pt-3 text-muted small">
+                <div class="col-sm-6">
+                    <div class="fw-semibold text-dark mb-1">Payment Method:</div>
+                    <div>{{ bill.get_payment_method_display }}</div>
+                    <div class="mt-2 text-muted" style="font-size: 0.8rem;">
+                        This digital invoice is logged in the permanent AutoVia vehicle maintenance logbook.
+                    </div>
+                </div>
+                <div class="col-sm-6 text-sm-end pt-4">
+                    <div class="border-top pt-2 d-inline-block text-center" style="min-width: 200px;">
+                        <div class="fw-semibold text-dark">{{ workshop.workshop_name }}</div>
+                        <small class="text-muted">Authorized Workshop Representative</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

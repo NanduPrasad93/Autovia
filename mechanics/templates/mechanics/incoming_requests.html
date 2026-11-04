@@ -1,0 +1,151 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Incoming Requests | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Incoming Service Requests</h2>
+            <p class="text-muted small mb-0">Review pending vehicle maintenance bookings and roadside assistance dispatches awaiting your acceptance.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'mechanics:active_repairs' %}" class="btn btn-sm btn-outline-dark rounded-3 px-3">
+                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Active Repairs
+            </a>
+        </div>
+    </div>
+
+    <!-- Verification / Availability Warning Notice -->
+    {% if mechanic.verification_status != 'VERIFIED' %}
+        <div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center gap-3">
+            <i class="fa-solid fa-triangle-exclamation fs-3 text-warning"></i>
+            <div class="small">
+                <strong>Account Pending Verification:</strong> You can browse incoming tickets, but accepting customer bookings is locked until platform administrators verify your automotive credentials.
+            </div>
+        </div>
+    {% elif not mechanic.is_available %}
+        <div class="alert alert-secondary border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 small">
+                <i class="fa-solid fa-moon text-secondary fs-4"></i>
+                <span>You are currently <strong>Unavailable</strong>. Switch to <strong>Available</strong> to accept new service tickets.</span>
+            </div>
+            <form method="POST" action="{% url 'mechanics:toggle_availability' %}" class="m-0">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                    <i class="fa-solid fa-power-off me-1"></i> Go Available
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Filter & Search Toolbar -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="q" value="{{ query }}" class="form-control bg-light border-0" placeholder="Search by manufacturer, model, registration number, or problem keywords...">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-3 w-100 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                    Filter
+                </button>
+                {% if query %}
+                    <a href="{% url 'mechanics:incoming_requests' %}" class="btn btn-outline-secondary rounded-3">
+                        Reset
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Requests Table Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="small text-muted text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                            <th>Ticket</th>
+                            <th>Vehicle Details</th>
+                            <th>Customer</th>
+                            <th>Problem Summary</th>
+                            <th>Requested For</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold text-dark font-monospace">#{{ req.pk }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ req.vehicle.manufacturer }} {{ req.vehicle.model_name }}</div>
+                                    <div class="small text-muted">
+                                        <span class="badge bg-light text-dark border font-monospace">{{ req.vehicle.registration_number }}</span>
+                                        <span class="badge bg-light text-secondary">{{ req.vehicle.get_fuel_type_display }}</span>
+                                        <span class="text-muted">• {{ req.vehicle.manufacturing_year }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark small">{{ req.customer.get_full_name|default:req.customer.username }}</div>
+                                    <small class="text-muted d-block">{{ req.customer.email }}</small>
+                                </td>
+                                <td style="max-width: 250px;">
+                                    <p class="text-muted small mb-0 text-truncate" title="{{ req.problem_description }}">
+                                        {{ req.problem_description }}
+                                    </p>
+                                </td>
+                                <td class="small">
+                                    <div class="fw-semibold text-dark">{{ req.requested_date|date:"M d, Y" }}</div>
+                                    <small class="text-muted">{{ req.requested_date|date:"H:i" }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end align-items-center gap-1">
+                                        <a href="{% url 'mechanics:request_detail' req.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" style="font-size: 0.75rem;" title="View Ticket">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+
+                                        {% if mechanic.verification_status == 'VERIFIED' and mechanic.is_available %}
+                                            <form method="POST" action="{% url 'mechanics:accept_request' req.pk %}" class="d-inline m-0">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 py-1" style="font-size: 0.75rem;" title="Accept Ticket">
+                                                    <i class="fa-solid fa-check me-1"></i> Accept
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{% url 'mechanics:reject_request' req.pk %}" class="d-inline m-0" onsubmit="return confirm('Are you sure you want to decline this request?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size: 0.75rem;" title="Decline Ticket">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-light border text-muted rounded-pill px-2 py-1" disabled style="font-size: 0.75rem;" title="Accepting disabled: verify account or set available">
+                                                Locked
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted small">
+                <i class="fa-solid fa-inbox fs-1 text-secondary opacity-50 mb-2"></i>
+                <h5 class="fw-bold text-dark mt-2 mb-1">No Incoming Requests Found</h5>
+                <p class="mb-0">There are currently no pending service tickets matching your query or awaiting acceptance.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

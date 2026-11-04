@@ -1,0 +1,182 @@
+{% extends "admin_dashboard/admin_base.html" %}
+
+{% block title %}Audit Mechanic: {{ mechanic.user.username }} | AutoVia Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'admin_dashboard:mechanics' %}" class="btn btn-sm btn-outline-secondary py-2 px-3">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <span>{{ mechanic.user.get_full_name|default:mechanic.user.username }}</span>
+                    {% if mechanic.verification_status == 'VERIFIED' %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-circle-check me-1"></i> Verified Mechanic
+                        </span>
+                    {% elif mechanic.verification_status == 'REJECTED' %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-clock me-1"></i> Verification Pending
+                        </span>
+                    {% endif %}
+                </h2>
+                <div class="small text-muted font-monospace">Username: {{ mechanic.user.username }} &bull; Profile ID: #{{ mechanic.pk }}</div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard:user_detail' mechanic.user.pk %}" class="btn btn-outline-dark">
+                <i class="fa-solid fa-user me-1"></i> View User Account
+            </a>
+        </div>
+    </div>
+
+    <!-- Rejection Callout if already rejected -->
+    {% if mechanic.verification_status == 'REJECTED' and mechanic.rejection_reason %}
+        <div class="alert alert-danger border-danger border-opacity-25 shadow-sm rounded-4 mb-4 p-3 d-flex align-items-start gap-3">
+            <i class="fa-solid fa-circle-exclamation fs-4 text-danger mt-1"></i>
+            <div>
+                <h6 class="fw-bold mb-1 text-danger">Application Rejection Reason on File</h6>
+                <p class="small text-dark mb-0">{{ mechanic.rejection_reason }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Application Details & Decision Controls -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Mechanic Credentials & Qualifications</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <span class="text-muted small">Automobile Specialization:</span>
+                            <div class="fw-bold text-dark fs-6">{{ mechanic.specialization }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted small">Trade Experience:</span>
+                            <div class="fw-bold text-dark fs-6">{{ mechanic.experience_years }} Years Practical Experience</div>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted small">Service Location / City Area:</span>
+                            <div class="fw-medium text-dark">{{ mechanic.service_location }}</div>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted small">Professional Description / Background:</span>
+                            <div class="p-3 bg-light rounded-3 text-dark small leading-relaxed">
+                                {{ mechanic.description|default:"No extended biography provided." }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted small">Direct Phone:</span>
+                            <div class="fw-semibold text-dark">{{ mechanic.user.profile.phone_number|default:"Not specified" }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted small">Contact Email:</span>
+                            <div class="fw-semibold text-dark">{{ mechanic.user.email }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Administrative Decision Action Box -->
+                    <div class="p-4 rounded-4 bg-light border">
+                        <h6 class="fw-bold text-dark mb-2">Administrative Verification Action</h6>
+                        <p class="text-muted small mb-3">
+                            Approved mechanics are immediately made discoverable to vehicle owners for booking roadside assistance and repair jobs.
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <!-- Approve Action Form -->
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn btn-success fw-semibold px-4 py-2 shadow-sm" {% if mechanic.verification_status == 'VERIFIED' %}disabled{% endif %}>
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    {% if mechanic.verification_status == 'VERIFIED' %}Currently Approved{% else %}Approve Mechanic{% endif %}
+                                </button>
+                            </form>
+
+                            <!-- Reject Action Trigger -->
+                            <button type="button" class="btn btn-outline-danger px-4 py-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="fa-solid fa-circle-xmark me-1"></i> Reject Application
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reject Application Modal -->
+                    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4 border-0 shadow">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject">
+                                    <div class="modal-header border-bottom-0 pb-0">
+                                        <h5 class="modal-title fw-bold text-danger" id="rejectModalLabel">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Reject Mechanic Application
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body py-3">
+                                        <p class="text-dark small mb-3">
+                                            Specify an administrative rejection reason explaining why the application was declined (e.g., unverifiable experience, invalid certifications).
+                                        </p>
+                                        <label for="rejectionReason" class="form-label small fw-semibold text-dark">
+                                            Rejection Reason (Optional):
+                                        </label>
+                                        <textarea id="rejectionReason" name="rejection_reason" class="form-control" rows="3" placeholder="Explain rejection rationale for applicant records...">{{ mechanic.rejection_reason }}</textarea>
+                                    </div>
+                                    <div class="modal-footer border-top-0 pt-0">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Service Requests -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Assigned Jobs ({{ assigned_requests.count }})</h5>
+                    <a href="{% url 'admin_dashboard:services' %}?q={{ mechanic.user.username }}" class="btn btn-sm btn-outline-secondary">All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if assigned_requests %}
+                        <div class="list-group list-group-flush">
+                            {% for req in assigned_requests %}
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="fw-bold text-primary font-monospace">#{{ req.pk }}</span>
+                                        <span class="badge bg-light text-dark border small">{{ req.get_status_display }}</span>
+                                    </div>
+                                    <div class="small fw-semibold text-dark">{{ req.vehicle.manufacturer }} {{ req.vehicle.model_name }}</div>
+                                    <div class="small text-muted text-truncate mb-2">{{ req.problem_description }}</div>
+                                    <a href="{% url 'admin_dashboard:service_detail' req.pk %}" class="btn btn-sm btn-outline-dark w-100">
+                                        Inspect Service Request
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted small">
+                            No service requests currently assigned to this mechanic.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

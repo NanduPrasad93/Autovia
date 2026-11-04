@@ -1,0 +1,228 @@
+{% extends "suppliers/supplier_base.html" %}
+
+{% block title %}
+    {% if is_edit %}Edit {{ part.part_name }} | AutoVia{% else %}Add New Spare Part | AutoVia{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid {% if is_edit %}fa-pen-to-square{% else %}fa-plus-circle{% endif %} text-warning"></i>
+                {% if is_edit %}
+                    Edit Spare Part: {{ part.part_name }}
+                {% else %}
+                    Add New Spare Part to Catalog
+                {% endif %}
+            </h2>
+            <p class="text-muted mb-0 small">
+                {% if is_edit %}
+                    Update product specifications, inventory quantity, or pricing in your catalog.
+                {% else %}
+                    Register an authentic OEM or aftermarket component for vehicle owners and repair workshops.
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'suppliers:products' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Back to Catalog
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        {% if is_edit %}Product Information & Inventory{% else %}New Part Details{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mb-4">
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3 mb-3">
+                            <!-- Part Name -->
+                            <div class="col-md-7">
+                                <label for="{{ form.part_name.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Part Name <span class="text-danger">*</span>
+                                </label>
+                                {{ form.part_name }}
+                                {% if form.part_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.part_name.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Descriptive title of the automobile replacement component.</div>
+                            </div>
+
+                            <!-- Part Number (SKU) -->
+                            <div class="col-md-5">
+                                <label for="{{ form.part_number.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Part / SKU Number <span class="text-danger">*</span>
+                                </label>
+                                {{ form.part_number }}
+                                {% if form.part_number.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.part_number.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Unique OEM or aftermarket identification code.</div>
+                            </div>
+
+                            <!-- Compatible Manufacturer -->
+                            <div class="col-md-6">
+                                <label for="{{ form.compatible_manufacturer.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Vehicle Manufacturer / Brand
+                                </label>
+                                {{ form.compatible_manufacturer }}
+                                {% if form.compatible_manufacturer.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.compatible_manufacturer.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">e.g. Toyota, Honda, Hyundai, Tata, Suzuki, Universal.</div>
+                            </div>
+
+                            <!-- Unit Price -->
+                            <div class="col-md-3">
+                                <label for="{{ form.price.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Unit Price (₹) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">₹</span>
+                                    {{ form.price }}
+                                </div>
+                                {% if form.price.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.price.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Must be &gt; 0.</div>
+                            </div>
+
+                            <!-- Stock Quantity -->
+                            <div class="col-md-3">
+                                <label for="{{ form.stock_quantity.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Available Stock <span class="text-danger">*</span>
+                                </label>
+                                {{ form.stock_quantity }}
+                                {% if form.stock_quantity.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.stock_quantity.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Units in warehouse.</div>
+                            </div>
+
+                            <!-- Compatible Models -->
+                            <div class="col-12">
+                                <label for="{{ form.compatible_vehicle_models.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Compatible Vehicle Models & Years
+                                </label>
+                                {{ form.compatible_vehicle_models }}
+                                {% if form.compatible_vehicle_models.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.compatible_vehicle_models.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">List specific vehicle generations, engine codes, or model years.</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Detailed Product Specifications
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.description.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Include warranty terms, material specs, installation tips, or OEM part cross-references.</div>
+                            </div>
+
+                            <!-- Product Image -->
+                            <div class="col-md-8">
+                                <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold small text-dark">
+                                    Product Image
+                                </label>
+                                {{ form.image }}
+                                {% if form.image.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for err in form.image.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text small">Upload clear photo of the component and manufacturer label.</div>
+                            </div>
+
+                            <!-- Active Listing Checkbox -->
+                            <div class="col-md-4 d-flex align-items-center">
+                                <div class="form-check form-switch mt-3">
+                                    {{ form.is_available }}
+                                    <label class="form-check-label fw-semibold text-dark small" for="{{ form.is_available.id_for_label }}">
+                                        Active in Public Marketplace
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="{% url 'suppliers:products' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-warning text-dark fw-semibold px-4 shadow-sm">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>
+                                {% if is_edit %}Save Changes{% else %}Publish Part{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Guidelines & Preview -->
+        <div class="col-lg-4">
+            {% if is_edit and part.image %}
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                        <h6 class="fw-bold mb-0 text-dark">Current Image</h6>
+                    </div>
+                    <div class="card-body p-3 text-center">
+                        <img src="{{ part.image.url }}" alt="{{ part.part_name }}" class="img-fluid rounded-3 border" style="max-height: 200px; object-fit: contain;">
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h6 class="fw-bold mb-0 text-dark">Catalog Quality Guidelines</h6>
+                </div>
+                <div class="card-body p-4 small text-muted">
+                    <div class="mb-3">
+                        <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-barcode text-primary me-1"></i> Unique Part Numbers</div>
+                        <p class="mb-0">Part numbers must be globally unique across all catalog products to prevent duplication during search.</p>
+                    </div>
+                    <div class="mb-3">
+                        <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-tag text-success me-1"></i> Transparent Pricing</div>
+                        <p class="mb-0">Prices must be positive values (greater than zero) and include all relevant taxes.</p>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-boxes-packing text-warning me-1"></i> Accurate Stock Levels</div>
+                        <p class="mb-0">Keep inventory counts in sync with physical warehouse stock. When orders are confirmed, stock is automatically reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

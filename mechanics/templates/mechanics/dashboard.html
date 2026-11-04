@@ -1,0 +1,362 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Technician Dashboard | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <!-- Welcome Header & Status Banner -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">
+                Technician Console – Welcome, {{ request.user.first_name|default:request.user.username }}! 🔧
+            </h2>
+            <p class="text-muted small mb-0">
+                Specialization: <strong>{{ mechanic.specialization }}</strong> • Service Area: <strong>{{ mechanic.service_location }}</strong>
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'mechanics:incoming_requests' %}" class="btn btn-sm btn-primary rounded-3 px-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                <i class="fa-solid fa-inbox me-1"></i> Incoming Requests ({{ total_incoming_requests }})
+            </a>
+            <a href="{% url 'mechanics:active_repairs' %}" class="btn btn-sm btn-outline-dark rounded-3 px-3">
+                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Active Repairs
+            </a>
+            <a href="{% url 'mechanics:profile' %}" class="btn btn-sm btn-outline-secondary rounded-3 px-3">
+                <i class="fa-solid fa-user-pen me-1"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Verification Advisory (If Not Verified) -->
+    {% if mechanic.verification_status != 'VERIFIED' %}
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-warning bg-opacity-10 border-warning border-opacity-25">
+            <div class="d-flex align-items-start gap-3">
+                <div class="p-2 bg-warning bg-opacity-25 text-dark rounded-3 fs-4">
+                    <i class="fa-solid fa-shield-halved text-warning"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">Credentials Verification in Progress</h5>
+                    <p class="text-muted small mb-2">
+                        Your professional mechanic profile is currently <strong>{{ mechanic.get_verification_status_display }}</strong>. To protect vehicle owners and maintain platform safety, service ticket acceptance, estimate authoring, and invoice generation are unlocked once an AutoVia administrator reviews your credentials.
+                    </p>
+                    <a href="{% url 'mechanics:profile' %}" class="btn btn-sm btn-dark rounded-pill px-3">
+                        <i class="fa-solid fa-file-shield me-1"></i> Complete Profile Information
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 6 KPI Metric Stat Cards -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Incoming Requests -->
+        <div class="col-sm-6 col-xl-2">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Incoming</span>
+                    <div class="stat-icon" style="background: rgba(16, 27, 45, 0.08); color: var(--primary-color);">
+                        <i class="fa-solid fa-inbox"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ total_incoming_requests }}</h3>
+                <small class="text-muted">Available tickets</small>
+            </div>
+        </div>
+
+        <!-- 2. Accepted Requests -->
+        <div class="col-sm-6 col-xl-2">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Accepted</span>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ accepted_count }}</h3>
+                <small class="text-muted">Awaiting intake</small>
+            </div>
+        </div>
+
+        <!-- 3. Active Repairs -->
+        <div class="col-sm-6 col-xl-2">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">In Progress</span>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ active_repairs_count }}</h3>
+                <small class="text-muted">On the hoist / bay</small>
+            </div>
+        </div>
+
+        <!-- 4. Completed Repairs -->
+        <div class="col-sm-6 col-xl-2">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Completed</span>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ completed_repairs_count }}</h3>
+                <small class="text-muted">Repairs finalized</small>
+            </div>
+        </div>
+
+        <!-- 5. Total Repair Revenue -->
+        <div class="col-sm-6 col-xl-2">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Earnings</span>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">${{ total_earnings|floatformat:2 }}</h3>
+                <small class="text-muted">Invoiced revenue</small>
+            </div>
+        </div>
+
+        <!-- 6. Customer Rating -->
+        <div class="col-sm-6 col-xl-2">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Rating</span>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ avg_rating }} <span class="fs-6 text-muted">/ 5</span></h3>
+                <small class="text-muted">{{ total_reviews }} customer review(s)</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Repairs & Incoming Requests Grid -->
+    <div class="row g-4 mb-4">
+        <!-- Active Work Orders -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-screwdriver-wrench text-primary me-2"></i> Active Repair Jobs
+                    </h5>
+                    <a href="{% url 'mechanics:active_repairs' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View All <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+
+                {% if active_jobs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer & Vehicle</th>
+                                    <th>Problem Summary</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in active_jobs %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold text-dark">{{ job.vehicle.manufacturer }} {{ job.vehicle.model_name }}</div>
+                                            <div class="text-muted font-monospace" style="font-size: 0.72rem;">{{ job.vehicle.registration_number }} • {{ job.customer.get_full_name|default:job.customer.username }}</div>
+                                        </td>
+                                        <td style="max-width: 220px;">
+                                            <div class="text-truncate text-muted">{{ job.problem_description }}</div>
+                                        </td>
+                                        <td>
+                                            {% if job.status == 'ACCEPTED' %}
+                                                <span class="badge bg-warning text-dark">Accepted</span>
+                                            {% elif job.status == 'IN_PROGRESS' %}
+                                                <span class="badge bg-primary text-white">In Progress</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'mechanics:request_detail' job.pk %}" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                                                Manage
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-check-circle fs-1 text-success opacity-50 mb-2"></i>
+                        <p class="mb-0">No active repair work orders on your bay right now.</p>
+                        <a href="{% url 'mechanics:incoming_requests' %}" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-3">
+                            Check Incoming Requests
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Availability & Dispatch Status Widget -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold text-dark mb-0">Dispatch & Status</h5>
+                        {% if mechanic.is_available %}
+                            <span class="badge bg-success text-white px-2 py-1">Available</span>
+                        {% else %}
+                            <span class="badge bg-secondary text-white px-2 py-1">Unavailable</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-3 rounded-3 {% if mechanic.is_available %}bg-success bg-opacity-10 border border-success border-opacity-25{% else %}bg-secondary bg-opacity-10 border border-secondary border-opacity-25{% endif %} mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="fa-solid {% if mechanic.is_available %}fa-signal text-success{% else %}fa-ban text-secondary{% endif %}"></i>
+                            <span class="fw-bold text-dark">
+                                {% if mechanic.is_available %}
+                                    Broadcasting to Vehicle Owners
+                                {% else %}
+                                    Off Duty / Not Accepting Bookings
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            {% if mechanic.is_available %}
+                                Vehicle owners searching in <strong>{{ mechanic.service_location }}</strong> can find your profile and send direct repair dispatches.
+                            {% else %}
+                                You are paused from receiving new emergency dispatches. You can still manage existing active repairs.
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{% url 'mechanics:toggle_availability' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="btn w-100 rounded-3 py-2 fw-semibold {% if mechanic.is_available %}btn-outline-danger{% else %}btn-success{% endif %}">
+                            <i class="fa-solid fa-power-off me-1"></i>
+                            {% if mechanic.is_available %}
+                                Switch to Unavailable (Off-Duty)
+                            {% else %}
+                                Switch to Available (Accept Jobs)
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="small text-muted d-flex justify-content-between mb-1">
+                        <span>Technician Experience:</span>
+                        <strong class="text-dark">{{ mechanic.experience_years }} Years</strong>
+                    </div>
+                    <div class="small text-muted d-flex justify-content-between mb-1">
+                        <span>Service Coverage:</span>
+                        <strong class="text-dark">{{ mechanic.service_location }}</strong>
+                    </div>
+                    <div class="small text-muted d-flex justify-content-between">
+                        <span>Verification:</span>
+                        <strong class="{% if mechanic.verification_status == 'VERIFIED' %}text-success{% else %}text-warning{% endif %}">
+                            {{ mechanic.get_verification_status_display }}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Incoming Requests & Customer Reviews -->
+    <div class="row g-4">
+        <!-- Recent Incoming Requests -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-inbox text-warning me-2"></i> Recent Service Inquiries
+                    </h5>
+                    <a href="{% url 'mechanics:incoming_requests' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View All ({{ total_incoming_requests }}) <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+
+                {% if recent_requests %}
+                    <div class="list-group list-group-flush">
+                        {% for req in recent_requests %}
+                            <div class="list-group-item px-0 py-3 border-light-subtle d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="fw-bold text-dark">{{ req.vehicle.manufacturer }} {{ req.vehicle.model_name }}</span>
+                                        <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.72rem;">{{ req.vehicle.registration_number }}</span>
+                                        <span class="badge bg-light text-secondary" style="font-size: 0.7rem;">{{ req.vehicle.get_fuel_type_display }}</span>
+                                    </div>
+                                    <p class="text-muted small mb-1 text-truncate" style="max-width: 420px;">
+                                        {{ req.problem_description }}
+                                    </p>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        Requested for: <strong>{{ req.requested_date|date:"M d, Y H:i" }}</strong> • Customer: {{ req.customer.get_full_name|default:req.customer.username }}
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="{% url 'mechanics:request_detail' req.pk %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                        Review
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-inbox fs-2 text-secondary opacity-50 mb-2"></i>
+                        <p class="mb-0">No new incoming requests waiting for acceptance.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Customer Feedback -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-star text-warning me-2"></i> Customer Testimonials
+                    </h5>
+                    <a href="{% url 'mechanics:feedback_list' %}" class="small text-decoration-none fw-semibold" style="color: var(--secondary-color);">
+                        View All ({{ total_reviews }}) <i class="fa-solid fa-arrow-right small"></i>
+                    </a>
+                </div>
+
+                {% if recent_feedbacks %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for fb in recent_feedbacks %}
+                            <div class="p-3 rounded-3 bg-light border border-light-subtle">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-dark small">{{ fb.customer.get_full_name|default:fb.customer.username }}</strong>
+                                    <span class="text-warning small">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= fb.rating %}
+                                                <i class="fa-solid fa-star"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-star text-muted"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                <p class="text-muted small mb-1 fst-italic">"{{ fb.comment|default:"Service completed satisfactorily." }}"</p>
+                                <div class="text-muted" style="font-size: 0.7rem;">
+                                    Vehicle: {{ fb.service_request.vehicle.manufacturer }} {{ fb.service_request.vehicle.model_name }} • {{ fb.created_at|date:"M d, Y" }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-comments fs-2 text-secondary opacity-50 mb-2"></i>
+                        <p class="mb-0">No customer reviews on record yet.</p>
+                        <small class="text-muted">Reviews will appear as vehicle owners rate completed service orders.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

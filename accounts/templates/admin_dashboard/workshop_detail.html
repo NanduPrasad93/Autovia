@@ -1,0 +1,263 @@
+{% extends "admin_dashboard/admin_base.html" %}
+
+{% block title %}Audit Workshop: {{ workshop.workshop_name }} | AutoVia Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'admin_dashboard:workshops' %}" class="btn btn-sm btn-outline-secondary py-2 px-3">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <span>{{ workshop.workshop_name }}</span>
+                    {% if workshop.verification_status == 'APPROVED' or workshop.verification_status == 'VERIFIED' %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-circle-check me-1"></i> Approved Facility
+                        </span>
+                    {% elif workshop.verification_status == 'SUSPENDED' %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-ban me-1"></i> Suspended
+                        </span>
+                    {% elif workshop.verification_status == 'REJECTED' %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-clock me-1"></i> Accreditation Pending
+                        </span>
+                    {% endif %}
+                </h2>
+                <div class="small text-muted font-monospace">Facility ID: #{{ workshop.pk }} &bull; Registered: {{ workshop.created_at|date:"M d, Y" }}</div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard:user_detail' workshop.owner.pk %}" class="btn btn-outline-dark">
+                <i class="fa-solid fa-user me-1"></i> Owner: {{ workshop.owner.username }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert if suspended or rejected -->
+    {% if workshop.rejection_reason and workshop.verification_status in 'REJECTED,SUSPENDED' %}
+        <div class="alert alert-danger border-danger border-opacity-25 shadow-sm rounded-4 mb-4 p-3 d-flex align-items-start gap-3">
+            <i class="fa-solid fa-triangle-exclamation fs-4 text-danger mt-1"></i>
+            <div>
+                <h6 class="fw-bold mb-1 text-danger">Compliance Rationale on Record:</h6>
+                <p class="small text-dark mb-0">{{ workshop.rejection_reason }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Facility Details & Actions -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Workshop Facility Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <span class="text-muted small">Hotline Phone:</span>
+                            <div class="fw-bold text-dark fs-6">{{ workshop.phone_number }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted small">Customer Rating:</span>
+                            <div class="fw-bold text-dark fs-6"><i class="fa-solid fa-star text-warning me-1"></i>{{ workshop.get_average_rating }} / 5.0</div>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted small">Physical Address:</span>
+                            <div class="fw-medium text-dark">{{ workshop.address }}</div>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted small">Services Offered:</span>
+                            <div class="p-3 bg-light rounded-3 text-dark small leading-relaxed">
+                                {{ workshop.services_offered }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted small">Facility Description:</span>
+                            <div class="p-3 bg-light rounded-3 text-dark small leading-relaxed">
+                                {{ workshop.description|default:"No description provided." }}
+                            </div>
+                        </div>
+                        {% if workshop.workshop_image %}
+                            <div class="col-12">
+                                <span class="text-muted small d-block mb-2">Facility Photo:</span>
+                                <img src="{{ workshop.workshop_image.url }}" alt="{{ workshop.workshop_name }}" class="img-fluid rounded-3 border" style="max-height: 200px;">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Accreditation Control Box -->
+                    <div class="p-4 rounded-4 bg-light border">
+                        <h6 class="fw-bold text-dark mb-2">Administrative Accreditation Controls</h6>
+                        <p class="text-muted small mb-3">
+                            Approved workshops can accept service requests and issue quotations. Suspending a workshop revokes these privileges immediately.
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <!-- Approve Action -->
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn btn-success fw-semibold px-4 py-2 shadow-sm" {% if workshop.is_approved %}disabled{% endif %}>
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    {% if workshop.is_approved %}Accredited & Active{% else %}Approve Workshop{% endif %}
+                                </button>
+                            </form>
+
+                            <!-- Suspend Action Trigger -->
+                            <button type="button" class="btn btn-outline-warning text-dark px-4 py-2" data-bs-toggle="modal" data-bs-target="#suspendModal">
+                                <i class="fa-solid fa-ban me-1"></i> Suspend
+                            </button>
+
+                            <!-- Reject Action Trigger -->
+                            <button type="button" class="btn btn-outline-danger px-4 py-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="fa-solid fa-circle-xmark me-1"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reject Modal -->
+                    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4 border-0 shadow">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject">
+                                    <div class="modal-header border-bottom-0 pb-0">
+                                        <h5 class="modal-title fw-bold text-danger" id="rejectModalLabel">
+                                            Reject Workshop Application
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body py-3">
+                                        <label for="rejectReason" class="form-label small fw-semibold text-dark">
+                                            Rejection Reason:
+                                        </label>
+                                        <textarea id="rejectReason" name="rejection_reason" class="form-control" rows="3" placeholder="Explain rejection rationale...">{{ workshop.rejection_reason }}</textarea>
+                                    </div>
+                                    <div class="modal-footer border-top-0 pt-0">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suspend Modal -->
+                    <div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4 border-0 shadow">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="suspend">
+                                    <div class="modal-header border-bottom-0 pb-0">
+                                        <h5 class="modal-title fw-bold text-danger" id="suspendModalLabel">
+                                            Suspend Workshop Operations
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body py-3">
+                                        <p class="text-muted small mb-3">
+                                            Suspending this workshop stops them from receiving new service requests.
+                                        </p>
+                                        <div class="mb-3">
+                                            <label for="suspendReason" class="form-label small fw-semibold text-dark">
+                                                Suspension Rationale:
+                                            </label>
+                                            <textarea id="suspendReason" name="rejection_reason" class="form-control" rows="3" placeholder="Reason for suspension..."></textarea>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="deactivate_owner" value="1" id="deactivateOwnerCheck">
+                                            <label class="form-check-label text-dark small" for="deactivateOwnerCheck">
+                                                Also deactivate the owner's user account (<strong>{{ workshop.owner.username }}</strong>)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-top-0 pt-0">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Confirm Suspension</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Service Requests & Feedback -->
+        <div class="col-lg-5">
+            <!-- Assigned Requests -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Recent Service Requests</h5>
+                    <a href="{% url 'admin_dashboard:services' %}?q={{ workshop.workshop_name }}" class="btn btn-sm btn-outline-secondary">All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if assigned_requests %}
+                        <div class="list-group list-group-flush">
+                            {% for req in assigned_requests %}
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="fw-bold text-primary font-monospace">#{{ req.pk }}</span>
+                                        <span class="badge bg-light text-dark border small">{{ req.get_status_display }}</span>
+                                    </div>
+                                    <div class="small fw-semibold text-dark">{{ req.vehicle.manufacturer }} {{ req.vehicle.model_name }}</div>
+                                    <div class="small text-muted text-truncate mb-2">{{ req.problem_description }}</div>
+                                    <a href="{% url 'admin_dashboard:service_detail' req.pk %}" class="btn btn-sm btn-outline-dark w-100">
+                                        Inspect Service Request
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted small">No service requests assigned to this workshop.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Reviews -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Customer Reviews ({{ feedbacks.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if feedbacks %}
+                        <div class="list-group list-group-flush">
+                            {% for f in feedbacks %}
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-warning small">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= f.rating %}
+                                                    <i class="fa-solid fa-star"></i>
+                                                {% else %}
+                                                    <i class="fa-regular fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <small class="text-muted">{{ f.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <div class="small text-dark">{{ f.comment }}</div>
+                                    <small class="text-muted d-block mt-1">By: {{ f.customer.username }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted small">No customer feedback on record.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

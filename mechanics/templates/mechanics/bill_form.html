@@ -1,0 +1,171 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Generate Final Repair Bill | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Generate Final Repair Bill & Invoice</h2>
+            <p class="text-muted small mb-0">Ticket #{{ service_request.pk }} for {{ service_request.vehicle.manufacturer }} {{ service_request.vehicle.model_name }} ({{ service_request.vehicle.registration_number }}).</p>
+        </div>
+        <div>
+            <a href="{% url 'mechanics:request_detail' service_request.pk %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Request
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-car text-primary me-2"></i> Vehicle & Owner Details</h6>
+                <div class="p-3 rounded-3 bg-light border text-muted small mb-3">
+                    <div class="fw-bold text-dark fs-6">{{ service_request.vehicle.manufacturer }} {{ service_request.vehicle.model_name }}</div>
+                    <div class="font-monospace text-dark mb-2">{{ service_request.vehicle.registration_number }}</div>
+                    <div class="d-flex justify-content-between border-top pt-2">
+                        <span>Owner:</span>
+                        <strong class="text-dark">{{ service_request.customer.get_full_name|default:service_request.customer.username }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between pt-1">
+                        <span>Odometer:</span>
+                        <strong class="text-dark">{{ service_request.vehicle.current_odometer|default:"0" }} km</strong>
+                    </div>
+                </div>
+
+                <div class="alert alert-success border-0 rounded-3 small p-3 mb-0">
+                    <div class="fw-bold mb-1"><i class="fa-solid fa-check-circle me-1"></i> History Log Guarantee</div>
+                    Issuing this bill automatically creates an official verified <strong>ServiceRecord</strong> in the customer's maintenance log and marks this service ticket as <strong>Completed</strong>.
+                </div>
+            </div>
+
+            <!-- Total Bill Live Counter Widget -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white border-top border-4" style="border-color: var(--secondary-color) !important;">
+                <span class="small text-muted fw-bold text-uppercase">Total Invoiced Amount</span>
+                <div class="display-5 fw-bold text-dark my-2" id="displayBillTotal">$0.00</div>
+                <small class="text-muted">Live sum of labor charges, replacement parts, and ancillary servicing fees.</small>
+            </div>
+        </div>
+
+        <!-- Bill Generation Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i> Itemized Billing Charges
+                </h5>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label for="id_labor_charges" class="form-label small fw-semibold text-dark">Labor Charges ($) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">$</span>
+                                <input type="number" step="0.01" min="0" name="labor_charges" id="id_labor_charges" value="{{ form.labor_charges.value|default:'0.00' }}" class="form-control bill-input rounded-end-3 {% if form.labor_charges.errors %}is-invalid{% endif %}" required>
+                            </div>
+                            {% if form.labor_charges.errors %}
+                                <div class="invalid-feedback d-block">{{ form.labor_charges.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="id_parts_charges" class="form-label small fw-semibold text-dark">Parts Charges ($) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">$</span>
+                                <input type="number" step="0.01" min="0" name="parts_charges" id="id_parts_charges" value="{{ form.parts_charges.value|default:'0.00' }}" class="form-control bill-input rounded-end-3 {% if form.parts_charges.errors %}is-invalid{% endif %}" required>
+                            </div>
+                            {% if form.parts_charges.errors %}
+                                <div class="invalid-feedback d-block">{{ form.parts_charges.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="id_additional_charges" class="form-label small fw-semibold text-dark">Additional Charges ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">$</span>
+                                <input type="number" step="0.01" min="0" name="additional_charges" id="id_additional_charges" value="{{ form.additional_charges.value|default:'0.00' }}" class="form-control bill-input rounded-end-3 {% if form.additional_charges.errors %}is-invalid{% endif %}">
+                            </div>
+                            {% if form.additional_charges.errors %}
+                                <div class="invalid-feedback d-block">{{ form.additional_charges.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_service_date" class="form-label small fw-semibold text-dark">Service Completion Date <span class="text-danger">*</span></label>
+                            <input type="date" name="service_date" id="id_service_date" value="{{ form.service_date.value|date:'Y-m-d'|default:'' }}" class="form-control rounded-3 {% if form.service_date.errors %}is-invalid{% endif %}" required>
+                            {% if form.service_date.errors %}
+                                <div class="invalid-feedback">{{ form.service_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_payment_method" class="form-label small fw-semibold text-dark">Payment Method</label>
+                            <select name="payment_method" id="id_payment_method" class="form-select rounded-3">
+                                {% for val, label in form.fields.payment_method.choices %}
+                                    <option value="{{ val }}" {% if form.payment_method.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_service_description" class="form-label small fw-semibold text-dark">Final Service Description & Work Done <span class="text-danger">*</span></label>
+                        <textarea name="service_description" id="id_service_description" rows="4" class="form-control rounded-3 {% if form.service_description.errors %}is-invalid{% endif %}" placeholder="Provide itemized summary of replacement parts, diagnostics conducted, warranty terms, and post-service advisories..." required>{{ form.service_description.value|default:'' }}</textarea>
+                        {% if form.service_description.errors %}
+                            <div class="invalid-feedback">{{ form.service_description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="is_paid" id="id_is_paid" class="form-check-input" {% if form.is_paid.value %}checked{% endif %}>
+                            <label class="form-check-label small fw-semibold text-dark" for="id_is_paid">
+                                Mark Invoice as Paid / Settled by Customer
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'mechanics:request_detail' service_request.pk %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                            <i class="fa-solid fa-file-invoice me-1"></i> Issue Final Bill & Complete Job
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const labor = document.getElementById('id_labor_charges');
+    const parts = document.getElementById('id_parts_charges');
+    const additional = document.getElementById('id_additional_charges');
+    const displayTotal = document.getElementById('displayBillTotal');
+
+    function updateBillTotal() {
+        const l = parseFloat(labor.value) || 0.0;
+        const p = parseFloat(parts.value) || 0.0;
+        const a = parseFloat(additional.value) || 0.0;
+        const sum = l + p + a;
+        if (displayTotal) {
+            displayTotal.textContent = '$' + sum.toFixed(2);
+        }
+    }
+
+    if (labor && parts && additional) {
+        [labor, parts, additional].forEach(el => {
+            el.addEventListener('input', updateBillTotal);
+        });
+        updateBillTotal();
+    }
+});
+</script>
+{% endblock %}

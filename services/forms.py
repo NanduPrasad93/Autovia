@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import ServiceRequest
+from .models import ServiceRequest, ServiceFeedback
 from vehicles.models import Vehicle
 from mechanics.models import MechanicProfile
 from workshops.models import Workshop
@@ -41,11 +41,15 @@ class ServiceRequestForm(forms.ModelForm):
         if user:
             self.fields['vehicle'].queryset = Vehicle.objects.filter(owner=user)
 
-        self.fields['mechanic'].queryset = MechanicProfile.objects.all()
+        self.fields['mechanic'].queryset = MechanicProfile.objects.filter(
+            verification_status=MechanicProfile.VerificationStatus.VERIFIED
+        )
         self.fields['mechanic'].required = False
         self.fields['mechanic'].empty_label = "-- Select an Individual Mechanic (Optional) --"
 
-        self.fields['workshop'].queryset = Workshop.objects.all()
+        self.fields['workshop'].queryset = Workshop.objects.filter(
+            verification_status__in=[Workshop.VerificationStatus.APPROVED, Workshop.VerificationStatus.VERIFIED]
+        )
         self.fields['workshop'].required = False
         self.fields['workshop'].empty_label = "-- Select a Certified Workshop (Optional) --"
 
@@ -62,3 +66,20 @@ class ServiceRequestForm(forms.ModelForm):
             raise ValidationError("Requested service appointment date cannot be in the past.")
 
         return cleaned_data
+
+
+class ServiceFeedbackForm(forms.ModelForm):
+    class Meta:
+        model = ServiceFeedback
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
+            }),
+            'comment': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Share your feedback on technician professionalism, punctuality, repair quality, and transparent pricing...',
+            }),
+        }

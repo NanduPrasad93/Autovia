@@ -1,0 +1,81 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}Service History | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Service History</h3>
+        <p class="text-muted small mb-0">Certified records of completed maintenance, overhauls, and routine checks</p>
+    </div>
+    <div>
+        <span class="badge bg-white text-dark border p-2 fs-6">
+            <span class="text-muted fw-normal">Total Historic Spend:</span>
+            <strong class="text-success ms-1">${{ total_spent|floatformat:2 }}</strong>
+        </span>
+    </div>
+</div>
+
+{% if records %}
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th class="ps-4">Record ID</th>
+                        <th>Vehicle</th>
+                        <th>Service Date</th>
+                        <th>Work Description</th>
+                        <th>Odometer</th>
+                        <th>Cost</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td class="ps-4 fw-bold">#{{ record.id }}</td>
+                            <td>
+                                <a href="{% url 'vehicles:detail' record.vehicle.pk %}" class="fw-semibold text-dark text-decoration-none">
+                                    {{ record.vehicle.manufacturer }} {{ record.vehicle.model_name }}
+                                </a>
+                                <div class="font-monospace small text-muted">{{ record.vehicle.registration_number }}</div>
+                            </td>
+                            <td class="small">{{ record.service_date|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 280px;" title="{{ record.service_description }}">
+                                    {{ record.service_description }}
+                                </div>
+                            </td>
+                            <td>{{ record.odometer_reading }} km</td>
+                            <td class="fw-bold text-success">${{ record.total_cost }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'services:record_detail' record.pk %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fa-solid fa-file-lines me-1"></i> View Record
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-4">
+        <div class="brand-icon mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem;">
+            <i class="fa-solid fa-clipboard-check"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No Service Records Found</h4>
+        <p class="text-muted small max-w-600 mx-auto mb-4">
+            Completed repairs and authorized workshop service entries will be archived here as permanent digital vehicle passports.
+        </p>
+        <div>
+            <a href="{% url 'services:request_create' %}" class="btn btn-primary-autovia px-4">
+                <i class="fa-solid fa-wrench me-1"></i> Book a Service Appointment
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

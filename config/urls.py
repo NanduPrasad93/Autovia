@@ -19,9 +19,21 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.views.generic import RedirectView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin-dashboard/', include('accounts.admin_urls')),
     path('accounts/', include('accounts.urls')),
+    path('vehicles/', include('vehicles.urls')),
+    path('mechanics/', include('mechanics.urls')),
+    path('workshops/', include('workshops.urls')),
+    path('supplier/', include('suppliers.urls')),
+    path('suppliers/', RedirectView.as_view(url='/supplier/', permanent=False)),
+    path('suppliers/<path:subpath>/', RedirectView.as_view(url='/supplier/%(subpath)s/', permanent=False)),
+    path('services/', include('services.urls')),
+    path('expenses/', include('expenses.urls')),
+    path('locations/', include('locations.urls')),
     path('', include('core.urls')),
 ]
 

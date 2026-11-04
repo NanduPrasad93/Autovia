@@ -13,4 +13,8 @@ urlpatterns = [
     # Service History
     path('history/', views.service_history_list, name='history_list'),
     path('history/<int:pk>/', views.service_record_detail, name='record_detail'),
+
+    # Billing & Feedback (Customer Facing)
+    path('requests/<int:pk>/bill/', views.customer_bill_detail, name='customer_bill_detail'),
+    path('requests/<int:pk>/feedback/', views.submit_feedback, name='submit_feedback'),
 ]

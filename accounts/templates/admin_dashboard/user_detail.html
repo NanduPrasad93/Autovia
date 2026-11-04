@@ -1,0 +1,338 @@
+{% extends "admin_dashboard/admin_base.html" %}
+
+{% block title %}User #{{ target_user.pk }}: {{ target_user.username }} | AutoVia Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'admin_dashboard:users' %}" class="btn btn-sm btn-outline-secondary py-2 px-3">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <span>{{ target_user.get_full_name|default:target_user.username }}</span>
+                    {% if target_user.is_active %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-circle-check me-1"></i> Active
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-6 py-1 px-2 fw-medium">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Deactivated
+                        </span>
+                    {% endif %}
+                </h2>
+                <div class="small text-muted font-monospace">Username: {{ target_user.username }} &bull; User ID: #{{ target_user.pk }}</div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <!-- Toggle Active Status Form with Self-Protection -->
+            {% if target_user.pk == request.user.pk %}
+                <button class="btn btn-secondary text-white fw-medium" disabled title="You cannot deactivate your own account">
+                    <i class="fa-solid fa-user-lock me-1"></i> Self Account
+                </button>
+            {% elif target_user.is_superuser and not request.user.is_superuser %}
+                <button class="btn btn-secondary text-white fw-medium" disabled title="Superuser status required">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Superuser Protected
+                </button>
+            {% else %}
+                <form method="POST" action="{% url 'admin_dashboard:user_toggle_status' target_user.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn {% if target_user.is_active %}btn-outline-danger{% else %}btn-success text-white{% endif %} fw-semibold shadow-sm" onclick="return confirm('Are you sure you want to {% if target_user.is_active %}deactivate{% else %}activate{% endif %} this user account?');">
+                        {% if target_user.is_active %}
+                            <i class="fa-solid fa-user-slash me-1"></i> Deactivate Account
+                        {% else %}
+                            <i class="fa-solid fa-user-check me-1"></i> Activate Account
+                        {% endif %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- User Metadata Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Account Credentials</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle {% if target_user.is_superuser %}bg-danger text-white{% elif target_user.is_staff %}bg-primary text-white{% else %}bg-light text-dark border{% endif %} fw-bold d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px; font-size: 2rem;">
+                            {{ target_user.first_name|default:target_user.username|make_list|first|upper }}
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">{{ target_user.get_full_name|default:target_user.username }}</h5>
+                        <div class="text-muted small font-monospace">{{ target_user.email }}</div>
+                        <div class="mt-2">
+                            {% with r=target_user.profile.role %}
+                                {% if r == 'ADMIN' %}
+                                    <span class="badge bg-danger">ADMINISTRATOR</span>
+                                {% elif r == 'MECHANIC' %}
+                                    <span class="badge bg-warning text-dark">MECHANIC</span>
+                                {% elif r == 'WORKSHOP' %}
+                                    <span class="badge bg-secondary">WORKSHOP</span>
+                                {% elif r == 'SUPPLIER' %}
+                                    <span class="badge bg-success">PARTS SUPPLIER</span>
+                                {% else %}
+                                    <span class="badge bg-info text-white">VEHICLE OWNER</span>
+                                {% endif %}
+                            {% endwith %}
+
+                            {% if target_user.is_superuser %}
+                                <span class="badge bg-danger ms-1">SUPERUSER</span>
+                            {% elif target_user.is_staff %}
+                                <span class="badge bg-primary ms-1">STAFF</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="list-group list-group-flush small">
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Phone Hotline:</span>
+                            <span class="fw-semibold">{{ target_user.profile.phone_number|default:"Not configured" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Primary Address:</span>
+                            <span class="text-end text-truncate" style="max-width: 180px;">{{ target_user.profile.address|default:"Not specified" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Registered Date:</span>
+                            <span>{{ target_user.date_joined|date:"M d, Y H:i" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Last Authentication:</span>
+                            <span>{{ target_user.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Activity for this User -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h6 class="fw-bold mb-0 text-dark">Related Activity Logs</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if user_activities %}
+                        <div class="list-group list-group-flush small">
+                            {% for act in user_activities %}
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;">
+                                            {{ act.get_action_type_display }}
+                                        </span>
+                                        <span class="text-muted" style="font-size: 0.75rem;">{{ act.created_at|date:"M d, H:i" }}</span>
+                                    </div>
+                                    <div class="text-dark">{{ act.description }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted small">No activity recorded for this user.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Domain Details & Linked Objects -->
+        <div class="col-lg-8">
+            <!-- Mechanic Profile (if applicable) -->
+            {% if mechanic_profile %}
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">Mechanic Credentials</h5>
+                        <a href="{% url 'admin_dashboard:mechanic_detail' mechanic_profile.pk %}" class="btn btn-sm btn-outline-dark">
+                            Review Mechanic Application <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <span class="text-muted small">Specialization:</span>
+                                <div class="fw-bold text-dark">{{ mechanic_profile.specialization }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted small">Experience:</span>
+                                <div class="fw-bold text-dark">{{ mechanic_profile.experience_years }} Years</div>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted small">Verification Status:</span>
+                                <div>
+                                    {% if mechanic_profile.verification_status == 'VERIFIED' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Verified</span>
+                                    {% elif mechanic_profile.verification_status == 'REJECTED' %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Rejected</span>
+                                    {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small">Service Location:</span>
+                                <div>{{ mechanic_profile.service_location }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Workshop Facilities (if applicable) -->
+            {% if workshops %}
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                        <h5 class="fw-bold mb-0 text-dark">Owned Workshop Facilities ({{ workshops.count }})</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Facility Name</th>
+                                        <th>Address</th>
+                                        <th>Status</th>
+                                        <th class="pe-4 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for w in workshops %}
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">{{ w.workshop_name }}</td>
+                                            <td class="small text-muted">{{ w.address }}</td>
+                                            <td>
+                                                {% if w.verification_status == 'APPROVED' or w.verification_status == 'VERIFIED' %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                {% elif w.verification_status == 'SUSPENDED' %}
+                                                    <span class="badge bg-danger">Suspended</span>
+                                                {% elif w.verification_status == 'REJECTED' %}
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'admin_dashboard:workshop_detail' w.pk %}" class="btn btn-sm btn-outline-dark">Review</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Supplier Profile (if applicable) -->
+            {% if supplier_profile %}
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">Spare Parts Supplier Enterprise</h5>
+                        <a href="{% url 'admin_dashboard:supplier_detail' supplier_profile.pk %}" class="btn btn-sm btn-outline-dark">
+                            Review Supplier <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <span class="text-muted small">Business Name:</span>
+                                <div class="fw-bold text-dark">{{ supplier_profile.business_name }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted small">Status:</span>
+                                <div>
+                                    {% if supplier_profile.is_approved %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% elif supplier_profile.verification_status == 'SUSPENDED' %}
+                                        <span class="badge bg-danger">Suspended</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small">Warehouse Address:</span>
+                                <div>{{ supplier_profile.business_address }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Registered Vehicles (for vehicle owners) -->
+            {% if vehicles %}
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                        <h5 class="fw-bold mb-0 text-dark">Registered Vehicles ({{ vehicles.count }})</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Vehicle Make / Model</th>
+                                        <th>Registration Number</th>
+                                        <th>Year / Fuel</th>
+                                        <th class="pe-4 text-end">Odometer</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for v in vehicles %}
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">{{ v.manufacturer }} {{ v.model_name }}</td>
+                                            <td class="font-monospace text-primary fw-semibold">{{ v.registration_number }}</td>
+                                            <td>{{ v.manufacturing_year }} &bull; {{ v.get_fuel_type_display }}</td>
+                                            <td class="pe-4 text-end">{{ v.current_odometer }} km</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Service Requests History -->
+            {% if service_requests %}
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">Recent Service Requests</h5>
+                        <a href="{% url 'admin_dashboard:services' %}?q={{ target_user.username }}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Request #</th>
+                                        <th>Vehicle</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th class="pe-4 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in service_requests %}
+                                        <tr>
+                                            <td class="ps-4 fw-bold font-monospace text-primary">#{{ s.pk }}</td>
+                                            <td>{{ s.vehicle.manufacturer }} {{ s.vehicle.model_name }}</td>
+                                            <td class="small text-muted">{{ s.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">{{ s.get_status_display }}</span>
+                                            </td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'admin_dashboard:service_detail' s.pk %}" class="btn btn-sm btn-outline-dark">Inspect</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

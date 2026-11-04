@@ -1,0 +1,248 @@
+{% extends 'workshops/workshop_base.html' %}
+
+{% block title %}Business Analytics | AutoVia{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Business Analytics & Performance</h3>
+        <p class="text-muted small mb-0">Financial, operational, and fleet breakdown metrics for {{ workshop.workshop_name }}.</p>
+    </div>
+    <div>
+        <a href="{% url 'workshops:dashboard' %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 small">
+            <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Operational KPI Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total Service Jobs -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Total Service Jobs</span>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0 text-dark">{{ total_jobs }}</h3>
+            <small class="text-muted">Assigned workshop tickets</small>
+        </div>
+    </div>
+
+    <!-- Completed Jobs -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Completed Jobs</span>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0 text-dark">{{ completed_jobs }}</h3>
+            <small class="text-success fw-semibold">{{ completion_rate }}% completion rate</small>
+        </div>
+    </div>
+
+    <!-- Total Revenue -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Cumulative Revenue</span>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0 text-dark">${{ total_revenue|floatformat:2 }}</h3>
+            <small class="text-muted">Avg ${{ avg_ticket_value }} / ticket</small>
+        </div>
+    </div>
+
+    <!-- Work In Progress -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted fw-semibold">Active In Bays</span>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0 text-dark">{{ in_progress_jobs }}</h3>
+            <small class="text-info fw-semibold">{{ pending_jobs }} pending review</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row: Monthly Revenue & Fuel/Category Distribution -->
+<div class="row g-4 mb-4">
+    <!-- Monthly Revenue & Volume Bar/Line Chart -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-chart-column text-warning me-2"></i> Monthly Revenue & Service Volume
+                </h5>
+                <span class="badge bg-light text-dark border px-2 py-1">Last 6 Months</span>
+            </div>
+            <div style="position: relative; height: 300px;">
+                <canvas id="monthlyRevenueAnalyticsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Fuel / Category Breakdown Doughnut Chart -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-gas-pump text-primary me-2"></i> Fleet Fuel Types
+                </h5>
+            </div>
+            <div style="position: relative; height: 240px;">
+                <canvas id="fuelBreakdownChart"></canvas>
+            </div>
+            <div class="mt-3 text-center small text-muted">
+                Distribution of vehicle powertrains serviced at {{ workshop.workshop_name }}.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Performance Table -->
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <h5 class="fw-bold mb-3 text-dark">Operational Metric Breakdown</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Metric Indicator</th>
+                    <th>Recorded Database Value</th>
+                    <th>Operational Significance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-semibold text-dark">Completion Efficiency Rate</td>
+                    <td class="fw-bold text-success">{{ completion_rate }}%</td>
+                    <td class="small text-muted">Proportion of accepted service requests successfully invoiced and delivered to owners.</td>
+                </tr>
+                <tr>
+                    <td class="fw-semibold text-dark">Average Repair Ticket Value</td>
+                    <td class="fw-bold text-dark font-monospace">${{ avg_ticket_value }}</td>
+                    <td class="small text-muted">Calculated as total settled invoice revenue divided by completed service orders.</td>
+                </tr>
+                <tr>
+                    <td class="fw-semibold text-dark">Active Service Bay Load</td>
+                    <td class="fw-bold text-info">{{ in_progress_jobs }} Bay Jobs</td>
+                    <td class="small text-muted">Currently hoisted vehicles under active diagnosis, parts installation, or testing.</td>
+                </tr>
+                <tr>
+                    <td class="fw-semibold text-dark">Cancelled / Rejected Jobs</td>
+                    <td class="fw-bold text-muted">{{ cancelled_jobs }} Tickets</td>
+                    <td class="small text-muted">Service tickets declined due to bay capacity, scheduling conflicts, or owner withdrawal.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const labels = {{ monthly_labels_json|safe }};
+        const revenue = {{ monthly_revenue_json|safe }};
+        const counts = {{ monthly_job_counts_json|safe }};
+        const fuelLabels = {{ fuel_labels_json|safe }};
+        const fuelData = {{ fuel_data_json|safe }};
+
+        // 1. Revenue Chart
+        const revCtx = document.getElementById('monthlyRevenueAnalyticsChart');
+        if (revCtx) {
+            new Chart(revCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Revenue ($)',
+                            data: revenue,
+                            backgroundColor: 'rgba(249, 115, 22, 0.85)',
+                            borderColor: '#F97316',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Completed Jobs',
+                            data: counts,
+                            type: 'line',
+                            borderColor: '#101B2D',
+                            backgroundColor: 'rgba(16, 27, 45, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: false,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(val) { return '$' + val; }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Fuel Type Breakdown Doughnut
+        const fuelCtx = document.getElementById('fuelBreakdownChart');
+        if (fuelCtx && fuelData.length > 0) {
+            new Chart(fuelCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: fuelLabels,
+                    datasets: [{
+                        data: fuelData,
+                        backgroundColor: [
+                            '#F97316',
+                            '#101B2D',
+                            '#16A34A',
+                            '#0284C7',
+                            '#8B5CF6'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        } else if (fuelCtx) {
+            fuelCtx.parentElement.innerHTML = '<div class="text-center py-5 text-muted small">No vehicle service records yet.</div>';
+        }
+    });
+</script>
+{% endblock %}

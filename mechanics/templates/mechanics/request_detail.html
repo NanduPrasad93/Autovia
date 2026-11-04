@@ -1,0 +1,285 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Request #{{ service_request.pk }} Details | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="h3 fw-bold text-dark mb-0">Service Ticket #{{ service_request.pk }}</h2>
+                {% if service_request.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill">Pending Acceptance</span>
+                {% elif service_request.status == 'ACCEPTED' %}
+                    <span class="badge bg-info text-white px-3 py-1 rounded-pill">Accepted / Scheduled</span>
+                {% elif service_request.status == 'IN_PROGRESS' %}
+                    <span class="badge bg-primary text-white px-3 py-1 rounded-pill">In Progress (Active Repair)</span>
+                {% elif service_request.status == 'COMPLETED' %}
+                    <span class="badge bg-success text-white px-3 py-1 rounded-pill">Completed</span>
+                {% elif service_request.status == 'REJECTED' %}
+                    <span class="badge bg-danger text-white px-3 py-1 rounded-pill">Rejected</span>
+                {% elif service_request.status == 'CANCELLED' %}
+                    <span class="badge bg-secondary text-white px-3 py-1 rounded-pill">Cancelled</span>
+                {% endif %}
+            </div>
+            <p class="text-muted small mb-0">Created on {{ service_request.created_at|date:"M d, Y H:i" }} • Appointment: <strong>{{ service_request.requested_date|date:"M d, Y H:i" }}</strong></p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'mechanics:incoming_requests' %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Requests
+            </a>
+
+            <!-- State Machine Action Triggers -->
+            {% if service_request.status == 'PENDING' %}
+                {% if mechanic.verification_status == 'VERIFIED' and mechanic.is_available %}
+                    <form method="POST" action="{% url 'mechanics:accept_request' service_request.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success rounded-3 fw-semibold">
+                            <i class="fa-solid fa-check me-1"></i> Accept Request
+                        </button>
+                    </form>
+                    <form method="POST" action="{% url 'mechanics:reject_request' service_request.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to decline this request?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">
+                            <i class="fa-solid fa-xmark me-1"></i> Decline
+                        </button>
+                    </form>
+                {% endif %}
+            {% elif service_request.status == 'ACCEPTED' %}
+                <a href="{% url 'mechanics:create_estimate' service_request.pk %}" class="btn btn-sm btn-primary rounded-3 fw-semibold" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                    <i class="fa-solid fa-calculator me-1"></i> {% if my_estimate %}Edit Estimate{% else %}Prepare Estimate{% endif %}
+                </a>
+                <form method="POST" action="{% url 'mechanics:update_repair_status' service_request.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="IN_PROGRESS">
+                    <button type="submit" class="btn btn-sm btn-dark rounded-3 fw-semibold">
+                        <i class="fa-solid fa-wrench me-1"></i> Mark In Progress
+                    </button>
+                </form>
+            {% elif service_request.status == 'IN_PROGRESS' %}
+                <a href="{% url 'mechanics:generate_bill' service_request.pk %}" class="btn btn-sm btn-success rounded-3 fw-semibold">
+                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> Generate Final Bill & Complete Job
+                </a>
+            {% elif service_request.status == 'COMPLETED' and bill %}
+                <a href="{% url 'mechanics:bill_detail' bill.pk %}" class="btn btn-sm btn-outline-dark rounded-3">
+                    <i class="fa-solid fa-file-invoice me-1"></i> View Invoice
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Vehicle & Customer Information -->
+        <div class="col-lg-5">
+            <!-- Vehicle Specs Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-car text-primary me-2"></i> Vehicle Profile
+                    </h5>
+                    <span class="badge bg-light text-dark border font-monospace">{{ service_request.vehicle.registration_number }}</span>
+                </div>
+
+                <div class="p-3 rounded-3 bg-light border border-light-subtle mb-3">
+                    <div class="h5 fw-bold text-dark mb-1">
+                        {{ service_request.vehicle.manufacturer }} {{ service_request.vehicle.model_name }}
+                    </div>
+                    <div class="small text-muted">
+                        {{ service_request.vehicle.manufacturing_year }} Model • {{ service_request.vehicle.color }}
+                    </div>
+                </div>
+
+                <div class="small text-muted d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span>Fuel Type:</span>
+                        <strong class="text-dark">{{ service_request.vehicle.get_fuel_type_display }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span>Current Odometer:</span>
+                        <strong class="text-dark">{{ service_request.vehicle.current_odometer|default:"0" }} km</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>VIN / Chassis Number:</span>
+                        <strong class="text-dark font-monospace">{{ service_request.vehicle.chassis_number|default:"Not specified" }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Coordinates Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-user text-info me-2"></i> Customer Details
+                </h5>
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-circle bg-secondary bg-opacity-10 text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                        {{ service_request.customer.first_name|default:service_request.customer.username|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">{{ service_request.customer.get_full_name|default:service_request.customer.username }}</div>
+                        <div class="small text-muted">AutoVia Registered Owner</div>
+                    </div>
+                </div>
+
+                <div class="small text-muted d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span>Email:</span>
+                        <strong class="text-dark">{{ service_request.customer.email }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span>Phone:</span>
+                        <strong class="text-dark">{{ service_request.customer.profile.phone_number|default:"Not on file" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Address:</span>
+                        <strong class="text-dark">{{ service_request.customer.profile.address|default:"Not specified" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Problem Description, Estimates & Billing -->
+        <div class="col-lg-7">
+            <!-- Problem Description Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Problem Description & Symptoms
+                </h5>
+                <div class="p-3 rounded-3 bg-light border border-light-subtle text-dark mb-0">
+                    {{ service_request.problem_description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Repair Estimates Section -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-calculator text-primary me-2"></i> Prepared Repair Estimates
+                    </h5>
+                    {% if service_request.status in 'ACCEPTED,IN_PROGRESS' %}
+                        <a href="{% url 'mechanics:create_estimate' service_request.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="fa-solid fa-plus me-1"></i> {% if my_estimate %}Edit Estimate{% else %}Create Estimate{% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+
+                {% if estimates %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Labor</th>
+                                    <th>Parts</th>
+                                    <th>Additional</th>
+                                    <th>Total Cost</th>
+                                    <th>Target Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for est in estimates %}
+                                    <tr {% if est.provider == request.user %}class="table-active"{% endif %}>
+                                        <td>${{ est.labor_cost|floatformat:2 }}</td>
+                                        <td>${{ est.parts_cost|floatformat:2 }}</td>
+                                        <td>${{ est.additional_cost|floatformat:2 }}</td>
+                                        <td class="fw-bold text-dark">${{ est.total_cost|floatformat:2 }}</td>
+                                        <td>{{ est.estimated_completion_date|default:"TBD" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" class="text-muted small border-bottom pb-3">
+                                            <strong>Estimate Notes:</strong> {{ est.description|default:"No notes added." }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-receipt fs-2 text-secondary opacity-50 mb-2"></i>
+                        <p class="mb-0">No repair estimates have been authored for this ticket yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Final Repair Invoice (If Generated) -->
+            {% if bill %}
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 border-success border-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-success mb-0">
+                            <i class="fa-solid fa-file-invoice-dollar me-2"></i> Official Repair Bill #{{ bill.pk }}
+                        </h5>
+                        <a href="{% url 'mechanics:bill_detail' bill.pk %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                            Print / View Full Invoice
+                        </a>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-3">
+                            <div class="p-2 rounded bg-light border text-center">
+                                <small class="text-muted d-block">Labor</small>
+                                <strong class="text-dark">${{ bill.labor_charges|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="p-2 rounded bg-light border text-center">
+                                <small class="text-muted d-block">Parts</small>
+                                <strong class="text-dark">${{ bill.parts_charges|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="p-2 rounded bg-light border text-center">
+                                <small class="text-muted d-block">Additional</small>
+                                <strong class="text-dark">${{ bill.additional_charges|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="p-2 rounded bg-success bg-opacity-10 border border-success border-opacity-25 text-center">
+                                <small class="text-success d-block fw-bold">Total Bill</small>
+                                <strong class="text-success">${{ bill.total_amount|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="small text-muted">
+                        <span>Payment Status:</span>
+                        {% if bill.is_paid %}
+                            <span class="badge bg-success">Paid</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending Payment</span>
+                        {% endif %}
+                        <span class="ms-2">• Method: {{ bill.get_payment_method_display }}</span>
+                        <span class="ms-2">• Date: {{ bill.service_date }}</span>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Customer Review (If Submitted) -->
+            {% if feedback %}
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-star text-warning me-2"></i> Customer Service Review
+                    </h5>
+                    <div class="p-3 rounded-3 bg-light border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="text-dark small">{{ feedback.customer.get_full_name|default:feedback.customer.username }}</strong>
+                            <span class="text-warning small">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= feedback.rating %}
+                                        <i class="fa-solid fa-star"></i>
+                                    {% else %}
+                                        <i class="fa-regular fa-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <strong class="text-dark ms-1">({{ feedback.rating }}/5)</strong>
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-1 fst-italic">"{{ feedback.comment|default:"No written review provided." }}"</p>
+                        <small class="text-muted">{{ feedback.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

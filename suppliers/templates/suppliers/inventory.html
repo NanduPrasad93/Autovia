@@ -1,0 +1,319 @@
+{% extends "suppliers/supplier_base.html" %}
+
+{% block title %}Stock Inventory Console | AutoVia Supplier Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-warehouse text-warning"></i> Inventory & Stock Console
+            </h2>
+            <p class="text-muted mb-0 small">
+                Monitor warehouse inventory levels, identify critical shortages (&le; 5 units), and replenish stock.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            {% if supplier.is_approved %}
+                <a href="{% url 'suppliers:product_add' %}" class="btn btn-warning text-dark fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-plus"></i> Add New Part
+                </a>
+            {% endif %}
+            <a href="{% url 'suppliers:products' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-boxes-stacked"></i> Full Catalog
+            </a>
+        </div>
+    </div>
+
+    <!-- Inventory Stat Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Total SKUs -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Catalog SKUs</span>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-barcode"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_skus }}</div>
+                <div class="small text-muted">Distinct part numbers</div>
+            </div>
+        </div>
+
+        <!-- Total Stock Units -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Available Units</span>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold text-dark mb-1">{{ total_stock }}</div>
+                <div class="small text-muted">Physical units on hand</div>
+            </div>
+        </div>
+
+        <!-- Low Stock Items -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card {% if low_stock.count > 0 %}border-warning border-opacity-50{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Low Stock Alert (&le; 5)</span>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold {% if low_stock.count > 0 %}text-warning{% else %}text-dark{% endif %} mb-1">
+                    {{ low_stock.count }}
+                </div>
+                <div class="small {% if low_stock.count > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                    Reorder advised
+                </div>
+            </div>
+        </div>
+
+        <!-- Out of Stock Items -->
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card {% if out_of_stock.count > 0 %}border-danger border-opacity-50{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Out of Stock (0)</span>
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold {% if out_of_stock.count > 0 %}text-danger{% else %}text-dark{% endif %} mb-1">
+                    {{ out_of_stock.count }}
+                </div>
+                <div class="small {% if out_of_stock.count > 0 %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+                    Customers cannot order
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Pills for Inventory Sections -->
+    <ul class="nav nav-pills mb-4 gap-2" id="inventoryTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-semibold px-4 d-flex align-items-center gap-2" id="all-tab" data-bs-toggle="pill" data-bs-target="#tab-all" type="button" role="tab">
+                <i class="fa-solid fa-layer-group"></i> All Stock
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-semibold px-4 d-flex align-items-center gap-2" id="critical-tab" data-bs-toggle="pill" data-bs-target="#tab-critical" type="button" role="tab">
+                <i class="fa-solid fa-triangle-exclamation text-danger"></i> Attention Needed
+                {% with critical_count=low_stock.count|add:out_of_stock.count %}
+                    {% if critical_count > 0 %}
+                        <span class="badge bg-danger rounded-pill">{{ critical_count }}</span>
+                    {% endif %}
+                {% endwith %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-semibold px-4 d-flex align-items-center gap-2" id="healthy-tab" data-bs-toggle="pill" data-bs-target="#tab-healthy" type="button" role="tab">
+                <i class="fa-solid fa-circle-check text-success"></i> Healthy Levels
+                <span class="badge bg-success bg-opacity-25 text-success rounded-pill">{{ adequate_stock.count }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="inventoryTabsContent">
+        <!-- Tab 1: All Stock Combined -->
+        <div class="tab-pane fade show active" id="tab-all" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark">Warehouse Stock Registry</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if supplier.spare_parts.all %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Part / SKU</th>
+                                        <th>Vehicle Manufacturer</th>
+                                        <th>Stock Level</th>
+                                        <th>Status Indicator</th>
+                                        <th>Unit Price</th>
+                                        <th class="pe-4 text-end">Update Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in supplier.spare_parts.all %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="fw-bold text-dark">{{ item.part_name }}</div>
+                                                <span class="font-monospace small text-muted">{{ item.part_number }}</span>
+                                            </td>
+                                            <td>{{ item.compatible_manufacturer|default:"Universal" }}</td>
+                                            <td class="fw-bold text-dark">
+                                                {{ item.stock_quantity }} units
+                                            </td>
+                                            <td>
+                                                {% if item.stock_quantity == 0 %}
+                                                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50">
+                                                        <i class="fa-solid fa-circle-xmark me-1"></i> Out of Stock
+                                                    </span>
+                                                {% elif item.stock_quantity <= 5 %}
+                                                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50">
+                                                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Critical Low
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50">
+                                                        <i class="fa-solid fa-circle-check me-1"></i> Normal Stock
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="fw-medium text-dark">₹{{ item.price }}</td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'suppliers:product_edit' item.pk %}" class="btn btn-sm btn-outline-primary" title="Update Quantity">
+                                                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-muted mb-0">No parts currently listed in inventory.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Attention Needed (Low + Out of Stock) -->
+        <div class="tab-pane fade" id="tab-critical" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-danger d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Critical Reorder SKUs
+                    </h5>
+                    <small class="text-muted">Parts with &le; 5 units remaining or out of stock</small>
+                </div>
+                <div class="card-body p-0">
+                    {% if low_stock or out_of_stock %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Part / SKU</th>
+                                        <th>Manufacturer</th>
+                                        <th>Current Stock</th>
+                                        <th>Shortage Level</th>
+                                        <th>Price</th>
+                                        <th class="pe-4 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in out_of_stock %}
+                                        <tr class="table-danger bg-opacity-10">
+                                            <td class="ps-4">
+                                                <div class="fw-bold text-dark">{{ item.part_name }}</div>
+                                                <span class="font-monospace small text-muted">{{ item.part_number }}</span>
+                                            </td>
+                                            <td>{{ item.compatible_manufacturer|default:"Universal" }}</td>
+                                            <td class="fw-bold text-danger">0 units</td>
+                                            <td>
+                                                <span class="badge bg-danger">OUT OF STOCK</span>
+                                            </td>
+                                            <td>₹{{ item.price }}</td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'suppliers:product_edit' item.pk %}" class="btn btn-sm btn-danger">
+                                                    Restock Now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+
+                                    {% for item in low_stock %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="fw-bold text-dark">{{ item.part_name }}</div>
+                                                <span class="font-monospace small text-muted">{{ item.part_number }}</span>
+                                            </td>
+                                            <td>{{ item.compatible_manufacturer|default:"Universal" }}</td>
+                                            <td class="fw-bold text-warning">{{ item.stock_quantity }} units</td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">Low (&le; 5)</span>
+                                            </td>
+                                            <td>₹{{ item.price }}</td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'suppliers:product_edit' item.pk %}" class="btn btn-sm btn-outline-warning text-dark">
+                                                    Replenish
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="fa-solid fa-circle-check fs-3"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">No Critical Stock Shortages</h5>
+                            <p class="text-muted small mb-0">All listed spare parts have adequate warehouse reserves.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Healthy Levels -->
+        <div class="tab-pane fade" id="tab-healthy" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-success d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-check"></i> Sufficient Stock SKUs (&gt; 5 units)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if adequate_stock %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Part / SKU</th>
+                                        <th>Manufacturer</th>
+                                        <th>Units on Hand</th>
+                                        <th>Price</th>
+                                        <th class="pe-4 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in adequate_stock %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="fw-bold text-dark">{{ item.part_name }}</div>
+                                                <span class="font-monospace small text-muted">{{ item.part_number }}</span>
+                                            </td>
+                                            <td>{{ item.compatible_manufacturer|default:"Universal" }}</td>
+                                            <td class="fw-bold text-success">{{ item.stock_quantity }} units</td>
+                                            <td class="fw-medium text-dark">₹{{ item.price }}</td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'suppliers:product_edit' item.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-muted mb-0">No spare parts currently meet normal stock threshold.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'workshops/workshop_base.html' %}
+
+{% block title %}Repair Quotations & Estimates | AutoVia{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Repair Quotations & Estimates</h3>
+        <p class="text-muted small mb-0">Track formal itemized cost estimates provided to customers.</p>
+    </div>
+    <div>
+        <a href="{% url 'workshops:active_repairs' %}" class="btn btn-outline-primary rounded-3 px-3 py-2 small fw-semibold">
+            <i class="fa-solid fa-warehouse me-1"></i> Active Repairs
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    {% if estimates %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Estimate #</th>
+                        <th>Request #</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Labor</th>
+                        <th>Parts</th>
+                        <th>Additional</th>
+                        <th>Total Cost</th>
+                        <th>Target Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for est in estimates %}
+                    <tr>
+                        <td class="fw-bold font-monospace text-muted">#{{ est.pk }}</td>
+                        <td>
+                            <a href="{% url 'workshops:request_detail' est.service_request.pk %}" class="fw-semibold text-decoration-none">
+                                #{{ est.service_request.pk }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ est.service_request.customer.get_full_name|default:est.service_request.customer.username }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ est.service_request.vehicle.manufacturer }} {{ est.service_request.vehicle.model_name }}</div>
+                            <small class="font-monospace text-muted">{{ est.service_request.vehicle.registration_number }}</small>
+                        </td>
+                        <td>${{ est.labor_cost|floatformat:2 }}</td>
+                        <td>${{ est.parts_cost|floatformat:2 }}</td>
+                        <td>${{ est.additional_cost|floatformat:2 }}</td>
+                        <td class="fw-bold text-dark fs-6">${{ est.total_cost|floatformat:2 }}</td>
+                        <td>{{ est.estimated_completion_date|default:"Not set" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'workshops:edit_estimate' est.service_request.pk %}" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 py-1">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-file-invoice-dollar fs-1 mb-3 opacity-50"></i>
+            <h5 class="fw-bold text-dark">No Repair Estimates Issued</h5>
+            <p class="small text-muted mb-0">You have not prepared any repair quotations yet. Accept an incoming service request to create an estimate.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

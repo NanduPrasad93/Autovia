@@ -1,0 +1,482 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}Vehicle Expense Analytics & Reports | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb" class="mb-1">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'expenses:list' %}" class="text-decoration-none">Expenses</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-warning"></i> Vehicle Expense Analytics & Intelligence
+        </h3>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'expenses:list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-list me-1"></i> View Transactions
+        </a>
+        <a href="{% url 'expenses:export_csv' %}?year={{ selected_year }}{% if selected_vehicle_id %}&vehicle_id={{ selected_vehicle_id }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="btn btn-outline-success btn-sm">
+            <i class="fa-solid fa-file-csv me-1"></i> Export Report (CSV)
+        </a>
+        <a href="{% url 'expenses:add' %}" class="btn btn-primary-autovia btn-sm">
+            <i class="fa-solid fa-plus me-1"></i> Log Expense
+        </a>
+    </div>
+</div>
+
+<!-- Multi-Criteria Analytics Filter Bar -->
+<div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+    <form method="GET" class="row g-2 align-items-center">
+        <!-- Year Selector -->
+        <div class="col-sm-6 col-md-3">
+            <label class="small text-muted fw-semibold d-block mb-1">Fiscal Year</label>
+            <select name="year" class="form-select form-select-sm bg-light">
+                {% for yr in years_list %}
+                    <option value="{{ yr }}" {% if selected_year == yr %}selected{% endif %}>Year {{ yr }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Vehicle Filter -->
+        <div class="col-sm-6 col-md-3">
+            <label class="small text-muted fw-semibold d-block mb-1">Automobile</label>
+            <select name="vehicle_id" class="form-select form-select-sm bg-light">
+                <option value="">All Garage Vehicles</option>
+                {% for v in user_vehicles %}
+                    <option value="{{ v.id }}" {% if selected_vehicle_id == v.id|stringformat:"i" %}selected{% endif %}>
+                        {{ v.manufacturer }} {{ v.model_name }} ({{ v.registration_number }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="col-sm-6 col-md-3">
+            <label class="small text-muted fw-semibold d-block mb-1">Expense Category</label>
+            <select name="category" class="form-select form-select-sm bg-light">
+                <option value="">All Categories</option>
+                {% for cat_val, cat_label in categories %}
+                    <option value="{{ cat_val }}" {% if selected_category == cat_val %}selected{% endif %}>
+                        {{ cat_label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Custom Date Range Toggle / Submit -->
+        <div class="col-sm-6 col-md-3 d-flex gap-2 align-self-end">
+            <button type="submit" class="btn btn-dark-navy btn-sm w-100 fw-medium">
+                <i class="fa-solid fa-chart-line me-1"></i> Generate Analytics
+            </button>
+            {% if selected_vehicle_id or selected_category or start_date or end_date or selected_year != now.year %}
+                <a href="{% url 'expenses:analytics' %}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- 5 KPI Aggregate Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total In Scope Spend -->
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted fw-semibold">Filtered Spend</span>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-0">${{ total_filtered_expenses|floatformat:2 }}</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Year {{ selected_year }} scope</small>
+        </div>
+    </div>
+
+    <!-- Annual Spend -->
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted fw-semibold">Yearly Total</span>
+                <div class="stat-icon bg-warning bg-opacity-25 text-warning" style="width: 38px; height: 38px;">
+                    <i class="fa-regular fa-calendar-check"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-0">${{ year_expenses_total|floatformat:2 }}</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Full Year {{ selected_year }}</small>
+        </div>
+    </div>
+
+    <!-- Monthly Spend -->
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted fw-semibold">Current Month</span>
+                <div class="stat-icon bg-success bg-opacity-10 text-success" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-0">${{ current_month_total|floatformat:2 }}</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">This billing cycle</small>
+        </div>
+    </div>
+
+    <!-- Average Monthly -->
+    <div class="col-xl col-md-6 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted fw-semibold">Monthly Average</span>
+                <div class="stat-icon bg-info bg-opacity-10 text-info" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-0">${{ avg_monthly_expense|floatformat:2 }}</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Per active month in {{ selected_year }}</small>
+        </div>
+    </div>
+
+    <!-- Top Expenditure Category -->
+    <div class="col-xl col-md-6 col-sm-12">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted fw-semibold">Top Expense Category</span>
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+            </div>
+            <h4 class="fw-bold text-dark mb-0 text-truncate" title="{{ top_category_name }}">{{ top_category_name }}</h4>
+            <small class="text-danger fw-semibold" style="font-size: 0.75rem;">${{ top_category_amount|floatformat:2 }} total</small>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Visualizations Grid -->
+<div class="row g-4 mb-4">
+    <!-- Chart A: 12-Month Expense Trend -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Monthly Expenditure Progression</h5>
+                    <small class="text-muted">12-month financial breakdown across {{ selected_year }}</small>
+                </div>
+                <span class="badge bg-light text-dark border">Year {{ selected_year }}</span>
+            </div>
+            <div style="height: 280px; position: relative;">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart B: Category Distribution (Doughnut) -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Category Breakdown</h5>
+                    <small class="text-muted">Proportional spending distribution</small>
+                </div>
+            </div>
+            {% if cat_labels_json != '[]' %}
+                <div style="height: 280px; position: relative;">
+                    <canvas id="categoryDoughnutChart"></canvas>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted small my-auto">
+                    <i class="fa-solid fa-chart-pie fa-2x mb-2 d-block text-secondary opacity-50"></i>
+                    No expense records matching the active filter.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chart C: Vehicle Comparison (Bar) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Expenditure per Vehicle</h5>
+                    <small class="text-muted">Compare running costs across your garage fleet</small>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                    {{ user_vehicles.count }} Vehicles
+                </span>
+            </div>
+            {% if vehicle_labels_json != '[]' %}
+                <div style="height: 260px; position: relative;">
+                    <canvas id="vehicleComparisonChart"></canvas>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted small my-auto">
+                    <i class="fa-solid fa-car fa-2x mb-2 d-block text-secondary opacity-50"></i>
+                    Register multiple vehicles to benchmark costs.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chart D: Multi-Year Spending Summary -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Multi-Year Financial History</h5>
+                    <small class="text-muted">Annual spending comparison over recorded years</small>
+                </div>
+                <span class="badge bg-light text-dark border">
+                    {{ yearly_table|length }} Years Recorded
+                </span>
+            </div>
+            <div style="height: 260px; position: relative;">
+                <canvas id="yearlyHistoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Breakdown Tables -->
+<div class="row g-4 mb-4">
+    <!-- Category Report Table -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
+            <div class="card-header bg-white border-bottom p-3">
+                <h6 class="fw-bold text-dark mb-0">Category-Wise Expense Breakdown</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Category</th>
+                            <th class="text-center">Entries</th>
+                            <th class="text-end">Total Spend</th>
+                            <th class="text-end pe-3">% Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in category_table_data %}
+                            <tr>
+                                <td class="ps-3 fw-semibold text-dark">
+                                    {% if c.code == 'FUEL' %}
+                                        <i class="fa-solid fa-gas-pump text-warning me-1"></i>
+                                    {% elif c.code == 'SERVICING' %}
+                                        <i class="fa-solid fa-screwdriver-wrench text-primary me-1"></i>
+                                    {% elif c.code == 'REPAIR' %}
+                                        <i class="fa-solid fa-wrench text-danger me-1"></i>
+                                    {% elif c.code == 'SPARE_PARTS' %}
+                                        <i class="fa-solid fa-gears text-info me-1"></i>
+                                    {% elif c.code == 'INSURANCE' %}
+                                        <i class="fa-solid fa-shield-halved text-success me-1"></i>
+                                    {% elif c.code == 'EV_CHARGING' %}
+                                        <i class="fa-solid fa-charging-station text-success me-1"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-receipt text-secondary me-1"></i>
+                                    {% endif %}
+                                    {{ c.label }}
+                                </td>
+                                <td class="text-center text-muted">{{ c.count }}</td>
+                                <td class="text-end fw-bold text-dark">${{ c.total|floatformat:2 }}</td>
+                                <td class="text-end pe-3 font-monospace text-muted">{{ c.percentage }}%</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No category data available for this filter.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-Vehicle Expense Table -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
+            <div class="card-header bg-white border-bottom p-3">
+                <h6 class="fw-bold text-dark mb-0">Per-Vehicle Fleet Expenditure Summary</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Vehicle</th>
+                            <th class="text-center">Entries</th>
+                            <th class="text-end">Lifetime Spend</th>
+                            <th class="text-end pe-3">% Fleet Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vehicle_summary_table %}
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-dark">{{ v.vehicle.manufacturer }} {{ v.vehicle.model_name }}</div>
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;">
+                                        {{ v.vehicle.registration_number }}
+                                    </span>
+                                </td>
+                                <td class="text-center text-muted">{{ v.count }}</td>
+                                <td class="text-end fw-bold text-dark">${{ v.total|floatformat:2 }}</td>
+                                <td class="text-end pe-3 font-monospace text-muted">{{ v.percentage }}%</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No registered vehicles found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const monthNames = {{ month_names_json|safe }};
+        const monthlyTrend = {{ monthly_trend_json|safe }};
+        const catLabels = {{ cat_labels_json|safe }};
+        const catValues = {{ cat_values_json|safe }};
+        const vehicleLabels = {{ vehicle_labels_json|safe }};
+        const vehicleValues = {{ vehicle_values_json|safe }};
+        const yearlyLabels = {{ yearly_labels_json|safe }};
+        const yearlyValues = {{ yearly_values_json|safe }};
+
+        // 1. Monthly Trend Bar/Line Chart
+        const trendCanvas = document.getElementById('monthlyTrendChart');
+        if (trendCanvas) {
+            new Chart(trendCanvas, {
+                type: 'bar',
+                data: {
+                    labels: monthNames,
+                    datasets: [{
+                        label: 'Expenditure ($)',
+                        data: monthlyTrend,
+                        backgroundColor: '#F97316',
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (val) { return '$' + val; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Category Doughnut Chart
+        const catCanvas = document.getElementById('categoryDoughnutChart');
+        if (catCanvas && catLabels.length > 0) {
+            new Chart(catCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catValues,
+                        backgroundColor: [
+                            '#F97316', '#101B2D', '#16A34A', '#0284C7',
+                            '#8B5CF6', '#F59E0B', '#EF4444'
+                        ],
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Vehicle Comparison Bar Chart
+        const vehicleCanvas = document.getElementById('vehicleComparisonChart');
+        if (vehicleCanvas && vehicleLabels.length > 0) {
+            new Chart(vehicleCanvas, {
+                type: 'bar',
+                data: {
+                    labels: vehicleLabels,
+                    datasets: [{
+                        label: 'Total Expenses ($)',
+                        data: vehicleValues,
+                        backgroundColor: '#101B2D',
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (val) { return '$' + val; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 4. Yearly History Chart
+        const yearlyCanvas = document.getElementById('yearlyHistoryChart');
+        if (yearlyCanvas && yearlyLabels.length > 0) {
+            new Chart(yearlyCanvas, {
+                type: 'line',
+                data: {
+                    labels: yearlyLabels,
+                    datasets: [{
+                        label: 'Annual Spend ($)',
+                        data: yearlyValues,
+                        borderColor: '#16A34A',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#16A34A',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (val) { return '$' + val; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends "suppliers/supplier_base.html" %}
+
+{% block title %}Sales & Financial Reports | AutoVia Supplier Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-chart-line text-warning"></i> Sales & Financial Reports
+            </h2>
+            <p class="text-muted mb-0 small">
+                Commercial analytics and revenue statistics derived strictly from fulfilled and delivered purchase orders.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'suppliers:orders' %}?status=DELIVERED" class="btn btn-outline-success d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-check"></i> Delivered Orders
+            </a>
+            <a href="{% url 'suppliers:inventory' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-warehouse"></i> Stock Console
+            </a>
+        </div>
+    </div>
+
+    <!-- Sales Stat Cards -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Total Delivered Sales Revenue -->
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Net Delivered Revenue</span>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-bold text-dark mb-1">₹{{ total_revenue|floatformat:2 }}</div>
+                <div class="small text-success fw-medium">
+                    <i class="fa-solid fa-circle-check me-1"></i> Strictly realized from delivered orders
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Units Sold -->
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Units Dispatched</span>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-cubes-stacked"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-bold text-dark mb-1">{{ total_units_sold }}</div>
+                <div class="small text-muted">
+                    Individual spare parts delivered to buyers
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Completed Orders -->
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Fulfilled Orders</span>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-bold text-dark mb-1">{{ total_completed_orders }}</div>
+                <div class="small text-muted">
+                    Total purchase orders completed
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Revenue & Orders Chart -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark">Monthly Revenue & Order Volume</h5>
+                <small class="text-muted">Delivered sales performance over the past 6 months</small>
+            </div>
+            <span class="badge bg-light text-dark border">Past 6 Months</span>
+        </div>
+        <div class="card-body p-4">
+            <div style="height: 300px; position: relative;">
+                <canvas id="salesAnalyticsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard & Recent Completed Orders -->
+    <div class="row g-4">
+        <!-- Best-Selling Products Leaderboard -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-trophy text-warning"></i> Best-Selling Spare Parts
+                    </h5>
+                    <span class="badge bg-light text-dark border">Top Performers</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if best_sellers %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">#</th>
+                                        <th>Part Name / SKU</th>
+                                        <th>Manufacturer</th>
+                                        <th>Units Sold</th>
+                                        <th class="pe-4 text-end">Sales Volume</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in best_sellers %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                {% if forloop.counter == 1 %}
+                                                    <span class="badge bg-warning text-dark rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                                                {% elif forloop.counter == 2 %}
+                                                    <span class="badge bg-secondary text-white rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                                                {% elif forloop.counter == 3 %}
+                                                    <span class="badge bg-brown text-white rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background-color: #B45309;">3</span>
+                                                {% else %}
+                                                    <span class="text-muted fw-bold ps-2">{{ forloop.counter }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark">{{ p.part_name }}</div>
+                                                <span class="font-monospace small text-muted">{{ p.part_number }}</span>
+                                            </td>
+                                            <td class="small">{{ p.compatible_manufacturer|default:"Universal" }}</td>
+                                            <td class="fw-bold text-dark">{{ p.units_sold }}</td>
+                                            <td class="pe-4 text-end fw-bold text-success font-monospace">
+                                                ₹{{ p.sales_volume|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="fa-solid fa-trophy fs-3"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">No Best Sellers Yet</h6>
+                            <p class="text-muted small mb-0">Delivered customer orders will rank your most in-demand replacement parts here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Completed Orders -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom border-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-success"></i> Recently Fulfilled Orders
+                    </h5>
+                    <a href="{% url 'suppliers:orders' %}?status=DELIVERED" class="btn btn-sm btn-outline-secondary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_completed %}
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="ps-4">Order #</th>
+                                        <th>Customer</th>
+                                        <th>Completed On</th>
+                                        <th>Amount</th>
+                                        <th class="pe-4 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ord in recent_completed %}
+                                        <tr>
+                                            <td class="ps-4 fw-bold font-monospace text-primary">
+                                                #{{ ord.pk }}
+                                            </td>
+                                            <td>
+                                                <div class="fw-medium text-dark">{{ ord.customer.get_full_name|default:ord.customer.username }}</div>
+                                            </td>
+                                            <td class="small text-muted">{{ ord.updated_at|date:"M d, Y" }}</td>
+                                            <td class="fw-bold text-dark font-monospace">
+                                                ₹{{ ord.total_amount }}
+                                            </td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{% url 'suppliers:order_detail' ord.pk %}" class="btn btn-sm btn-outline-dark">
+                                                    Details <i class="fa-solid fa-arrow-right small ms-1"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="fa-solid fa-clipboard-check fs-3"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">No Completed Orders Yet</h6>
+                            <p class="text-muted small mb-0">Orders progressed through to 'Delivered' status will appear in this ledger.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const labels = {{ monthly_labels_json|safe }};
+        const revenueData = {{ monthly_revenue_json|safe }};
+        const ordersData = {{ monthly_orders_json|safe }};
+
+        const ctx = document.getElementById('salesAnalyticsChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Settled Revenue (₹)',
+                            data: revenueData,
+                            backgroundColor: 'rgba(22, 163, 74, 0.85)',
+                            borderColor: '#16A34A',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Completed Orders',
+                            data: ordersData,
+                            type: 'line',
+                            borderColor: '#F97316',
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            pointBackgroundColor: '#F97316',
+                            pointRadius: 4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return '₹' + value.toLocaleString(); }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

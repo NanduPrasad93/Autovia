@@ -1,0 +1,93 @@
+{% extends 'workshops/workshop_base.html' %}
+
+{% block title %}Customer Reviews & Ratings | AutoVia{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Customer Feedback & Reviews</h3>
+        <p class="text-muted small mb-0">Verified customer ratings and testimonials for {{ workshop.workshop_name }}.</p>
+    </div>
+    <div>
+        <a href="{% url 'workshops:dashboard' %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 small">
+            <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Rating Overview Card -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="row g-4 align-items-center">
+        <!-- Average Rating Box -->
+        <div class="col-md-4 text-center border-end">
+            <h1 class="display-3 fw-bold text-dark mb-0">{{ avg_rating }}</h1>
+            <div class="text-warning fs-5 my-2">
+                {% for i in "12345"|make_list %}
+                    <i class="fa-solid fa-star"></i>
+                {% endfor %}
+            </div>
+            <p class="text-muted small mb-0">Based on {{ total_reviews }} verified review{{ total_reviews|pluralize }}</p>
+        </div>
+
+        <!-- Rating Distribution Bars -->
+        <div class="col-md-8">
+            <h6 class="fw-bold text-dark mb-3">Rating Breakdown</h6>
+            {% for stars, count in rating_counts.items %}
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <span class="small fw-semibold text-dark" style="width: 60px;">{{ stars }} Stars</span>
+                <div class="progress flex-grow-1" style="height: 8px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {% if total_reviews > 0 %}{% widthratio count total_reviews 100 %}{% else %}0{% endif %}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ total_reviews }}"></div>
+                </div>
+                <span class="small text-muted text-end" style="width: 30px;">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Reviews Feed -->
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
+        <i class="fa-solid fa-comments text-warning"></i> Recent Customer Testimonials
+    </h5>
+
+    {% if feedbacks %}
+        <div class="d-flex flex-column gap-3">
+            {% for fb in feedbacks %}
+            <div class="p-3 rounded-4 bg-light border">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-2">
+                    <div>
+                        <div class="fw-bold text-dark">{{ fb.customer.get_full_name|default:fb.customer.username }}</div>
+                        <small class="text-muted">Serviced: {{ fb.service_request.vehicle.manufacturer }} {{ fb.service_request.vehicle.model_name }} ({{ fb.service_request.vehicle.registration_number }})</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="text-warning small">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= fb.rating %}
+                                    <i class="fa-solid fa-star"></i>
+                                {% else %}
+                                    <i class="fa-regular fa-star text-muted"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="badge bg-white text-dark border small">{{ fb.rating }}.0</span>
+                        <small class="text-muted ms-1">{{ fb.created_at|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+                {% if fb.comment %}
+                    <p class="text-dark small mb-0">{{ fb.comment }}</p>
+                {% else %}
+                    <p class="text-muted small fst-italic mb-0">No written comments provided.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-star-half-stroke fs-1 mb-3 opacity-50"></i>
+            <h5 class="fw-bold text-dark">No Customer Reviews Yet</h5>
+            <p class="small text-muted mb-0">Reviews submitted by vehicle owners following completed repair orders will be displayed here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

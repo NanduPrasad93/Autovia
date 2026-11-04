@@ -1,0 +1,423 @@
+{% extends 'accounts/dashboards/vehicle_owner_base.html' %}
+{% load static %}
+
+{% block title %}Nearby Fuel & EV Stations | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+    <div>
+        <nav aria-label="breadcrumb" class="mb-1">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:vehicle_owner_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Fuel & EV Stations</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-primary"></i> Nearby Fuel & EV Charging Stations
+        </h3>
+    </div>
+    <div class="d-flex gap-2">
+        <button id="locateMeBtn" class="btn btn-primary-autovia btn-sm">
+            <i class="fa-solid fa-crosshairs me-1"></i> Locate Near Me (GPS)
+        </button>
+    </div>
+</div>
+
+<!-- Location Permission & Usage Explanation Alert -->
+<div class="alert alert-light border shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center gap-3 bg-white">
+    <div class="stat-icon bg-info bg-opacity-10 text-info flex-shrink-0" style="width: 42px; height: 42px; border-radius: 10px;">
+        <i class="fa-solid fa-shield-halved fs-5"></i>
+    </div>
+    <div class="small text-secondary">
+        <strong class="text-dark">Location Privacy Notice:</strong> AutoVia requests your browser's location solely to calculate accurate road proximity distances and identify nearby refuelling and charging stations. Your coordinates are handled exclusively in your client session and are never logged to a database.
+    </div>
+</div>
+
+<!-- Search & Controls Bar -->
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+    <div class="row g-3 align-items-center">
+        <!-- Manual City / Location Search -->
+        <div class="col-lg-5 col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0">
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                </span>
+                <input type="text" id="manualLocationInput" class="form-control border-start-0" placeholder="Enter city name (e.g. New York, London, Bengaluru, Toronto)...">
+                <button class="btn btn-dark-navy" type="button" id="searchCityBtn">Search City</button>
+            </div>
+        </div>
+
+        <!-- Station Type Filters (4 distinct filters) -->
+        <div class="col-lg-7 col-md-6 d-flex justify-content-md-end gap-2 flex-wrap">
+            <div class="btn-group" role="group" aria-label="Station Type Filters">
+                <input type="radio" class="btn-check" name="stationType" id="typeAll" value="all" checked>
+                <label class="btn btn-outline-secondary btn-sm" for="typeAll">
+                    <i class="fa-solid fa-list me-1"></i> All Hubs
+                </label>
+
+                <input type="radio" class="btn-check" name="stationType" id="typePetrol" value="petrol">
+                <label class="btn btn-outline-secondary btn-sm" for="typePetrol">
+                    <i class="fa-solid fa-gas-pump me-1 text-warning"></i> Petrol
+                </label>
+
+                <input type="radio" class="btn-check" name="stationType" id="typeDiesel" value="diesel">
+                <label class="btn btn-outline-secondary btn-sm" for="typeDiesel">
+                    <i class="fa-solid fa-oil-can me-1 text-danger"></i> Diesel
+                </label>
+
+                <input type="radio" class="btn-check" name="stationType" id="typeEV" value="ev">
+                <label class="btn btn-outline-secondary btn-sm" for="typeEV">
+                    <i class="fa-solid fa-charging-station me-1 text-success"></i> EV Fast Chargers
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Leaflet Map & Stations List -->
+<div class="row g-4 mb-4">
+    <!-- Map Container -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white position-relative">
+            <!-- Map Tile Error Fallback Banner -->
+            <div id="mapErrorBanner" class="alert alert-warning border-0 rounded-0 m-0 py-2 px-3 small d-none position-absolute top-0 start-0 end-0 shadow-sm" style="z-index: 1000;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+                        <span>Map tile service is temporarily degraded. Discovered station markers and directions remain fully operational in the panel.</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-sm small" onclick="document.getElementById('mapErrorBanner').classList.add('d-none');" aria-label="Close"></button>
+                </div>
+            </div>
+            <div id="map" style="height: 540px; width: 100%; position: relative;"></div>
+        </div>
+    </div>
+
+    <!-- Stations List Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 d-flex flex-column" style="max-height: 540px;">
+            <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
+                <h6 class="fw-bold text-dark mb-0">Discovered Hubs</h6>
+                <span id="stationCountBadge" class="badge bg-primary">0 Found</span>
+            </div>
+
+            <!-- List items container -->
+            <div id="stationsList" class="overflow-auto flex-grow-1 pe-1" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="text-center py-5 text-muted small">
+                    <i class="fa-solid fa-spinner fa-spin fs-4 mb-2 d-block text-secondary"></i>
+                    Locating stations on map...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Coordinate tracking
+        let currentLat = 12.9716;
+        let currentLon = 77.5946;
+        let userOriginLat = 12.9716;
+        let userOriginLon = 77.5946;
+
+        let map = null;
+        let tileLayer = null;
+        let markersLayer = null;
+        let userMarker = null;
+
+        // Initialize Leaflet Map with Compliant CARTO Voyager Tile Provider
+        function initLeafletMap(lat, lon) {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+
+            // Ensure previous instance is cleaned up to prevent duplicate initialization
+            if (map) {
+                map.remove();
+                map = null;
+            } else if (mapContainer._leaflet_id) {
+                mapContainer._leaflet_id = null;
+            }
+
+            map = L.map('map', {
+                center: [lat, lon],
+                zoom: 14,
+                zoomControl: true,
+                scrollWheelZoom: true
+            });
+
+            // Primary tile provider: CARTO Voyager (OSM-compatible, fast CDN, compliant with OSM policy)
+            const primaryTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            const fallbackTileUrl = 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png';
+
+            let tileFailureCount = 0;
+            let usingFallback = false;
+
+            tileLayer = L.tileLayer(primaryTileUrl, {
+                maxZoom: 20,
+                subdomains: 'abcd',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'
+            });
+
+            // Graceful error handling for map tiles
+            tileLayer.on('tileerror', function (err) {
+                tileFailureCount++;
+                console.warn('Map tile load error:', err);
+
+                // If primary provider encounters repeated errors, attempt fallback to OSM France
+                if (tileFailureCount >= 4 && !usingFallback) {
+                    usingFallback = true;
+                    console.info('Switching to secondary map tile provider (OSM France)...');
+                    if (map && tileLayer) {
+                        map.removeLayer(tileLayer);
+                        tileLayer = L.tileLayer(fallbackTileUrl, {
+                            maxZoom: 19,
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; OpenStreetMap France'
+                        }).addTo(map);
+                    }
+                } else if (tileFailureCount >= 8) {
+                    // Show non-intrusive fallback banner while keeping station list operational
+                    const banner = document.getElementById('mapErrorBanner');
+                    if (banner) {
+                        banner.classList.remove('d-none');
+                    }
+                }
+            });
+
+            tileLayer.addTo(map);
+            markersLayer = L.layerGroup().addTo(map);
+
+            // Invalidate size once layout is stable to ensure complete viewport coverage
+            setTimeout(function () {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 250);
+        }
+
+        // Handle responsive container adjustments
+        window.addEventListener('resize', function () {
+            if (map) {
+                map.invalidateSize();
+            }
+        });
+
+        // Initialize Map
+        initLeafletMap(currentLat, currentLon);
+
+        function loadStations(lat, lon, type) {
+            const listContainer = document.getElementById('stationsList');
+            const countBadge = document.getElementById('stationCountBadge');
+            listContainer.innerHTML = '<div class="text-center py-4 text-muted small"><i class="fa-solid fa-spinner fa-spin fs-5 mb-2 d-block text-secondary"></i> Loading stations...</div>';
+
+            fetch(`/locations/api/stations/?lat=${lat}&lon=${lon}&type=${type}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (markersLayer) {
+                        markersLayer.clearLayers();
+                    }
+                    const stations = data.stations || [];
+                    countBadge.textContent = `${stations.length} Found`;
+
+                    if (stations.length === 0) {
+                        listContainer.innerHTML = '<div class="text-center py-5 text-muted small"><i class="fa-solid fa-circle-info fs-4 mb-2 d-block text-secondary"></i>No stations detected in this zone. Try zooming out or searching another city.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = '';
+
+                    stations.forEach(st => {
+                        const isEV = st.is_ev || st.type === 'EV_CHARGING';
+                        let iconColor = '#F97316';
+                        let iconClass = 'fa-gas-pump';
+
+                        if (isEV) {
+                            iconColor = '#16A34A';
+                            iconClass = 'fa-charging-station';
+                        } else if (st.type === 'DIESEL') {
+                            iconColor = '#DC2626';
+                            iconClass = 'fa-oil-can';
+                        }
+
+                        // Custom Marker Icon
+                        const customIcon = L.divIcon({
+                            html: `<div style="background-color: ${iconColor}; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"><i class="fa-solid ${iconClass}"></i></div>`,
+                            className: '',
+                            iconSize: [34, 34],
+                            iconAnchor: [17, 17],
+                            popupAnchor: [0, -17]
+                        });
+
+                        // Verified OpenStreetMap Directions route URL
+                        const dirUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${userOriginLat}%2C${userOriginLon}%3B${st.lat}%2C${st.lon}`;
+
+                        const distBadge = st.distance_km ? `<span class="badge bg-primary text-white me-1"><i class="fa-solid fa-route me-1"></i> ${st.distance_km} km</span>` : '';
+
+                        const popupHtml = `
+                            <div style="min-width: 220px;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="fw-bold mb-0 text-dark">${st.name}</h6>
+                                </div>
+                                <div class="mb-2">
+                                    ${distBadge}
+                                    <span class="badge bg-light text-dark border">${st.brand}</span>
+                                </div>
+                                <p class="small text-muted mb-2">${st.address}</p>
+                                <div class="mb-2">
+                                    ${(st.fuels || []).map(f => `<span class="badge bg-light text-dark border me-1 small" style="font-size: 0.7rem;">${f}</span>`).join('')}
+                                </div>
+                                <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary-autovia btn-sm text-white w-100 py-1" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-diamond-turn-right me-1"></i> Directions on OpenStreetMap
+                                </a>
+                            </div>
+                        `;
+
+                        if (markersLayer) {
+                            const marker = L.marker([st.lat, st.lon], { icon: customIcon }).bindPopup(popupHtml);
+                            markersLayer.addLayer(marker);
+
+                            // Add to sidebar list item
+                            const item = document.createElement('div');
+                            item.className = 'p-3 rounded-3 bg-light border cursor-pointer';
+                            item.style.cursor = 'pointer';
+                            item.innerHTML = `
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge ${isEV ? 'bg-success' : (st.type === 'DIESEL' ? 'bg-danger' : 'bg-warning text-dark')} small">
+                                        <i class="fa-solid ${iconClass} me-1"></i> ${isEV ? 'EV Fast Charger' : (st.type === 'DIESEL' ? 'Diesel Station' : 'Fuel Station')}
+                                    </span>
+                                    ${st.distance_km ? `<small class="fw-bold text-dark font-monospace ms-auto"><i class="fa-solid fa-location-arrow text-primary me-1"></i>${st.distance_km} km</small>` : ''}
+                                </div>
+                                <div class="fw-bold text-dark small mb-1">${st.name}</div>
+                                <div class="text-muted small mb-2 text-truncate">${st.address}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-success"><i class="fa-solid fa-circle-check me-1"></i> ${st.brand}</small>
+                                    <a href="${dirUrl}" target="_blank" rel="noopener noreferrer" class="small fw-semibold text-decoration-none" style="color: var(--secondary-color);">
+                                        Directions <i class="fa-solid fa-arrow-up-right-from-square small ms-1"></i>
+                                    </a>
+                                </div>
+                            `;
+
+                            item.addEventListener('click', () => {
+                                if (map) {
+                                    map.setView([st.lat, st.lon], 16);
+                                    marker.openPopup();
+                                }
+                            });
+
+                            listContainer.appendChild(item);
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('Failed to load station data:', err);
+                    listContainer.innerHTML = '<div class="text-center py-4 text-danger small"><i class="fa-solid fa-triangle-exclamation mb-1 d-block fs-5"></i>Failed to load station markers. Please retry or search another location.</div>';
+                });
+        }
+
+        // Handle Filter Changes
+        document.querySelectorAll('input[name="stationType"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                loadStations(currentLat, currentLon, this.value);
+            });
+        });
+
+        // Geolocation trigger
+        document.getElementById('locateMeBtn').addEventListener('click', function () {
+            if (navigator.geolocation) {
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Locating...';
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        this.innerHTML = '<i class="fa-solid fa-crosshairs me-1"></i> Locate Near Me (GPS)';
+                        currentLat = pos.coords.latitude;
+                        currentLon = pos.coords.longitude;
+                        userOriginLat = currentLat;
+                        userOriginLon = currentLon;
+
+                        if (map) {
+                            map.setView([currentLat, currentLon], 15);
+                            if (userMarker) {
+                                map.removeLayer(userMarker);
+                            }
+                            userMarker = L.circleMarker([currentLat, currentLon], {
+                                color: '#101B2D',
+                                fillColor: '#3B82F6',
+                                fillOpacity: 0.9,
+                                radius: 8
+                            }).addTo(map).bindPopup('<strong>Your Current Location</strong>').openPopup();
+                        }
+
+                        const selectedType = document.querySelector('input[name="stationType"]:checked').value;
+                        loadStations(currentLat, currentLon, selectedType);
+                    },
+                    (err) => {
+                        this.innerHTML = '<i class="fa-solid fa-crosshairs me-1"></i> Locate Near Me (GPS)';
+                        alert('Location permission was denied or unavailable. You can use the manual city search bar above to look up stations in any city.');
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by your browser. Please use the manual search box.');
+            }
+        });
+
+        // Manual City Search Fallback
+        function performCitySearch() {
+            const query = document.getElementById('manualLocationInput').value.trim();
+            if (!query) return;
+
+            const btn = document.getElementById('searchCityBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    btn.textContent = 'Search City';
+                    if (data && data.length > 0) {
+                        currentLat = parseFloat(data[0].lat);
+                        currentLon = parseFloat(data[0].lon);
+                        userOriginLat = currentLat;
+                        userOriginLon = currentLon;
+
+                        if (map) {
+                            map.setView([currentLat, currentLon], 14);
+                            if (userMarker) {
+                                map.removeLayer(userMarker);
+                                userMarker = null;
+                            }
+                        }
+
+                        const selectedType = document.querySelector('input[name="stationType"]:checked').value;
+                        loadStations(currentLat, currentLon, selectedType);
+                    } else {
+                        alert(`Could not resolve location for "${query}". Please check the spelling or try a major nearby city.`);
+                    }
+                })
+                .catch(() => {
+                    btn.textContent = 'Search City';
+                    alert('Could not reach OpenStreetMap geocoding service. Please check your internet connection.');
+                });
+        }
+
+        document.getElementById('searchCityBtn').addEventListener('click', performCitySearch);
+        document.getElementById('manualLocationInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performCitySearch();
+            }
+        });
+
+        // Initial Load
+        loadStations(currentLat, currentLon, 'all');
+    });
+</script>
+{% endblock %}

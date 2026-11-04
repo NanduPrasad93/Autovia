@@ -1,0 +1,301 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title|default:"Supplier Portal | AutoVia" }}{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- AutoVia Custom Theme CSS -->
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+        }
+        body {
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .dashboard-wrapper {
+            display: flex;
+            flex-grow: 1;
+        }
+        .dashboard-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: #E2E8F0;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            min-height: calc(100vh - 65px);
+        }
+        .dashboard-sidebar .nav-link {
+            color: #CBD5E1 !important;
+            padding: 0.7rem 1.25rem !important;
+            border-radius: 10px;
+            font-size: 0.93rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.15rem 0.75rem;
+            transition: var(--transition-fast);
+        }
+        .dashboard-sidebar .nav-link:hover {
+            color: #FFFFFF !important;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        .dashboard-sidebar .nav-link.active {
+            color: #FFFFFF !important;
+            background-color: var(--secondary-color) !important;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        .dashboard-sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.05rem;
+        }
+        .dashboard-main {
+            flex-grow: 1;
+            padding: 2rem 2.25rem;
+            background-color: var(--bg-light);
+            max-width: calc(100% - var(--sidebar-width));
+        }
+        .stat-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: var(--transition-normal);
+            box-shadow: var(--shadow-sm);
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #CBD5E1;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+        }
+        @media (max-width: 991.98px) {
+            .dashboard-sidebar {
+                display: none;
+            }
+            .dashboard-main {
+                max-width: 100%;
+                padding: 1.25rem;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Top Dashboard Navbar -->
+    <header class="navbar navbar-dark autovia-navbar sticky-top px-3 py-2 shadow-sm">
+        <div class="container-fluid d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Mobile Sidebar Trigger -->
+                <button class="btn btn-sm btn-outline-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSupplierSidebar" aria-controls="mobileSupplierSidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <a class="navbar-brand m-0" href="{% url 'suppliers:dashboard' %}">
+                    <span class="brand-icon"><i class="fa-solid fa-boxes-packing"></i></span>
+                    <span>Auto<span class="highlight">Via</span></span>
+                    <span class="badge bg-warning text-dark ms-2 small d-none d-sm-inline-block font-monospace" style="font-size: 0.75rem;">SUPPLIER</span>
+                </a>
+            </div>
+
+            <!-- Top Right Tools (Verification Status Pill, Public Link, User Menu) -->
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <!-- Verification Status Badge -->
+                {% with sp=request.user.supplier_profile %}
+                    {% if sp.is_approved %}
+                        <a href="{% url 'suppliers:verification' %}" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-3 py-1 text-decoration-none small d-inline-flex align-items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Approved Supplier
+                        </a>
+                    {% elif sp.verification_status == 'REJECTED' %}
+                        <a href="{% url 'suppliers:verification' %}" class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-3 py-1 text-decoration-none small d-inline-flex align-items-center gap-1">
+                            <i class="fa-solid fa-circle-xmark"></i> Verification Rejected
+                        </a>
+                    {% else %}
+                        <a href="{% url 'suppliers:verification' %}" class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-3 py-1 text-decoration-none small d-inline-flex align-items-center gap-1">
+                            <i class="fa-solid fa-clock"></i> Verification Pending
+                        </a>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Public Site Link -->
+                <a href="{% url 'core:home' %}" class="btn btn-outline-light btn-sm d-none d-lg-inline-flex align-items-center gap-1">
+                    <i class="fa-solid fa-arrow-up-right-from-square small"></i> Public Site
+                </a>
+
+                <!-- User Dropdown Menu -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-2 py-1 px-2 rounded-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 0.85rem;">
+                            {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
+                        </div>
+                        <span class="small fw-semibold d-none d-sm-inline">{{ request.user.first_name|default:request.user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2" style="min-width: 220px;">
+                        <li class="px-3 py-2 border-bottom mb-1">
+                            <div class="fw-bold text-dark small text-truncate">{{ request.user.get_full_name|default:request.user.username }}</div>
+                            <small class="text-muted d-block text-truncate">{{ request.user.email }}</small>
+                            <span class="badge bg-warning bg-opacity-25 text-dark mt-1" style="font-size: 0.7rem;">Spare Parts Supplier</span>
+                        </li>
+                        <li><a class="dropdown-item small py-2 rounded" href="{% url 'suppliers:profile' %}"><i class="fa-solid fa-store me-2 text-muted"></i> Business Profile</a></li>
+                        <li><a class="dropdown-item small py-2 rounded" href="{% url 'suppliers:verification' %}"><i class="fa-solid fa-certificate me-2 text-muted"></i> Verification Status</a></li>
+                        <li><a class="dropdown-item small py-2 rounded" href="{% url 'suppliers:sales' %}"><i class="fa-solid fa-chart-line me-2 text-muted"></i> Sales & Revenue</a></li>
+                        <li><a class="dropdown-item small py-2 rounded" href="{% url 'accounts:change_password' %}"><i class="fa-solid fa-key me-2 text-muted"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <form method="POST" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item small py-2 rounded text-danger">
+                                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <!-- Desktop Sidebar -->
+        <aside class="dashboard-sidebar py-3">
+            <div class="px-3 mb-2 small text-uppercase text-light opacity-50 fw-bold" style="letter-spacing: 0.08em; font-size: 0.72rem;">
+                Inventory & Logistics
+            </div>
+            <nav class="nav flex-column">
+                <a class="nav-link {% if request.resolver_match.url_name in 'dashboard,dashboard_alias' %}active{% endif %}" href="{% url 'suppliers:dashboard' %}">
+                    <i class="fa-solid fa-gauge-high"></i> Overview
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name in 'products,product_add,product_edit' %}active{% endif %}" href="{% url 'suppliers:products' %}">
+                    <i class="fa-solid fa-boxes-stacked"></i> Products Catalog
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}" href="{% url 'suppliers:inventory' %}">
+                    <i class="fa-solid fa-warehouse"></i> Stock Inventory
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name in 'orders,order_detail' %}active{% endif %}" href="{% url 'suppliers:orders' %}">
+                    <i class="fa-solid fa-cart-flatbed"></i> Purchase Orders
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'sales' %}active{% endif %}" href="{% url 'suppliers:sales' %}">
+                    <i class="fa-solid fa-chart-line"></i> Sales & Reports
+                </a>
+
+                <div class="px-3 mt-3 mb-2 small text-uppercase text-light opacity-50 fw-bold" style="letter-spacing: 0.08em; font-size: 0.72rem;">
+                    Enterprise Setup
+                </div>
+                <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'suppliers:profile' %}">
+                    <i class="fa-solid fa-store"></i> Business Profile
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'verification' %}active{% endif %}" href="{% url 'suppliers:verification' %}">
+                    <i class="fa-solid fa-shield-halved"></i> Verification Status
+                </a>
+            </nav>
+
+            <div class="mt-auto px-3 pt-3 border-top border-white border-opacity-10">
+                <div class="small text-muted mb-1">Supplier Enterprise</div>
+                <div class="small fw-semibold text-light text-truncate">
+                    {{ request.user.supplier_profile.business_name|default:"AutoVia Supplier" }}
+                </div>
+                <div class="small text-light opacity-75 mt-1">
+                    <i class="fa-solid fa-phone me-1 text-warning"></i> {{ request.user.supplier_profile.phone_number|default:"No phone configured" }}
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Offcanvas Sidebar -->
+        <div class="offcanvas offcanvas-start bg-dark text-white autovia-navbar" tabindex="-1" id="mobileSupplierSidebar" aria-labelledby="mobileSupplierSidebarLabel">
+            <div class="offcanvas-header border-bottom border-white border-opacity-10">
+                <h5 class="offcanvas-title text-white d-flex align-items-center gap-2" id="mobileSupplierSidebarLabel">
+                    <span class="brand-icon"><i class="fa-solid fa-boxes-packing"></i></span> AutoVia Supplier
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <nav class="nav flex-column py-3">
+                    <a class="nav-link {% if request.resolver_match.url_name in 'dashboard,dashboard_alias' %}active{% endif %}" href="{% url 'suppliers:dashboard' %}">
+                        <i class="fa-solid fa-gauge-high"></i> Overview
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name in 'products,product_add,product_edit' %}active{% endif %}" href="{% url 'suppliers:products' %}">
+                        <i class="fa-solid fa-boxes-stacked"></i> Products Catalog
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}" href="{% url 'suppliers:inventory' %}">
+                        <i class="fa-solid fa-warehouse"></i> Stock Inventory
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name in 'orders,order_detail' %}active{% endif %}" href="{% url 'suppliers:orders' %}">
+                        <i class="fa-solid fa-cart-flatbed"></i> Purchase Orders
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'sales' %}active{% endif %}" href="{% url 'suppliers:sales' %}">
+                        <i class="fa-solid fa-chart-line"></i> Sales & Reports
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'suppliers:profile' %}">
+                        <i class="fa-solid fa-store"></i> Business Profile
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'verification' %}active{% endif %}" href="{% url 'suppliers:verification' %}">
+                        <i class="fa-solid fa-shield-halved"></i> Verification Status
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <!-- Global Flash Messages -->
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show rounded-3 shadow-sm border-0 d-flex align-items-center gap-2" role="alert">
+                            {% if message.tags == 'success' %}
+                                <i class="fa-solid fa-circle-check fs-5 text-success"></i>
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fa-solid fa-circle-exclamation fs-5 text-warning"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-info fs-5 text-info"></i>
+                            {% endif %}
+                            <div class="flex-grow-1">{{ message }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

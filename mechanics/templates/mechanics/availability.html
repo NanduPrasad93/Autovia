@@ -1,0 +1,112 @@
+{% extends 'mechanics/mechanic_base.html' %}
+
+{% block title %}Availability Management | AutoVia{% endblock %}
+
+{% block dashboard_body %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">Availability & Dispatch Management</h2>
+            <p class="text-muted small mb-0">Control your on-duty visibility for incoming service bookings and roadside assistance requests.</p>
+        </div>
+        <div>
+            <a href="{% url 'mechanics:dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                <i class="fa-solid fa-arrow-left me-1"></i> Dashboard Overview
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-toggle-on text-primary me-2"></i> Real-Time Service Status
+                </h5>
+
+                <div class="p-4 rounded-4 text-center mb-4 {% if mechanic.is_available %}bg-success bg-opacity-10 border border-success border-opacity-25{% else %}bg-secondary bg-opacity-10 border border-secondary border-opacity-25{% endif %}">
+                    <div class="stat-icon mx-auto mb-3 shadow-sm {% if mechanic.is_available %}bg-success text-white{% else %}bg-secondary text-white{% endif %}" style="width: 64px; height: 64px; font-size: 1.8rem;">
+                        <i class="fa-solid {% if mechanic.is_available %}fa-signal{% else %}fa-power-off{% endif %}"></i>
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-1">
+                        {% if mechanic.is_available %}
+                            You are currently AVAILABLE
+                        {% else %}
+                            You are currently UNAVAILABLE
+                        {% endif %}
+                    </h3>
+
+                    <p class="text-muted small max-w-600 mx-auto mb-3">
+                        {% if mechanic.is_available %}
+                            Your profile is active in search results for <strong>{{ mechanic.service_location }}</strong>. Vehicle owners can dispatch immediate repair requests directly to your terminal.
+                        {% else %}
+                            You are paused from accepting new incoming dispatches. Your ongoing active repairs remain active and accessible.
+                        {% endif %}
+                    </p>
+
+                    <form method="POST" action="{% url 'mechanics:toggle_availability' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="btn px-4 py-2 rounded-pill fw-semibold shadow-sm {% if mechanic.is_available %}btn-outline-danger{% else %}btn-success{% endif %}">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i>
+                            {% if mechanic.is_available %}
+                                Switch to Unavailable (Go Off-Duty)
+                            {% else %}
+                                Switch to Available (Go On-Duty)
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-3 small p-3 mb-0">
+                    <div class="fw-bold mb-1"><i class="fa-solid fa-circle-info me-1"></i> Verification Gate</div>
+                    Technicians must maintain an approved <strong>Verified</strong> status to accept new service requests. Even when marked available, unverified accounts cannot bind to customer tickets until background review completes.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i> Dispatch Guidelines
+                </h6>
+
+                <ul class="list-unstyled small text-muted mb-4 d-flex flex-column gap-3">
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                        <div>
+                            <strong class="text-dark">Prompt Response Time:</strong>
+                            <p class="mb-0">Please review and respond to incoming requests within 30 minutes of receipt when set to Available.</p>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                        <div>
+                            <strong class="text-dark">Fair Booking Acceptance:</strong>
+                            <p class="mb-0">Only accept jobs you have the bay capacity, tools, and technical specialization to service.</p>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                        <div>
+                            <strong class="text-dark">Off-Duty Etiquette:</strong>
+                            <p class="mb-0">When finishing your shift or fully booked, switch to Unavailable to prevent customer wait times.</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="p-3 rounded-3 bg-light border text-muted small mt-auto">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Current Account Status:</span>
+                        <strong class="text-dark">{{ mechanic.get_verification_status_display }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Service Coverage:</span>
+                        <strong class="text-dark">{{ mechanic.service_location }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

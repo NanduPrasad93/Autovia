@@ -17,6 +17,10 @@ urlpatterns = [
     path('dashboard/supplier/', views.supplier_dashboard, name='supplier_dashboard'),
     path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
 
+    # Profile Management
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/change-password/', views.change_password_view, name='change_password'),
+
     # Password Reset Workflow
     path('password-reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/', views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
